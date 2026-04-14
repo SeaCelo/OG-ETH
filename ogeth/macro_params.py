@@ -10,8 +10,139 @@ import pandas as pd
 import numpy as np
 import requests
 import datetime
-import statsmodels.api as sm
 from io import StringIO
+from pathlib import Path
+
+
+# IMF GFS coverage differs by country. For Ethiopia, the percent-of-GDP
+# Statement of Operations series used for alpha_T and alpha_G are published
+# under budgetary central government (S1311B), not the broader S1311 sector.
+IMF_GFS_SECTOR_BY_COUNTRY = {"ETH": "S1311B"}
+
+
+def _get_imf_gfs_sector(country_iso):
+    """
+    Return the IMF GFS sector code to use for a country's alpha queries.
+    """
+    return IMF_GFS_SECTOR_BY_COUNTRY.get(country_iso.upper(), "S1311")
+
+
+def _get_imf_macro_params(country_iso, target_year, data_path=None):
+    """
+    Fetch IMF GFS data and compute alpha_T and alpha_G.
+
+    Args:
+        country_iso (str): ISO alpha-3 country code
+        target_year (int): preferred calibration year
+        data_path (str | Path | None): optional path to save IMF CSV data
+
+    Returns:
+        dict: IMF-derived macro parameters
+    """
+    sector = _get_imf_gfs_sector(country_iso)
+    required_indicators = {"G2_T", "G24_T", "G27_T", "G271_T"}
+    data_path = Path(data_path) if data_path is not None else None
+    response = requests.get(
+        (
+            "https://api.imf.org/external/sdmx/3.0/data/dataflow/"
+            f"IMF.STA/GFS_SOO/12.0.0/{country_iso}.{sector}.G2M.*.POGDP_PT.A"
+        ),
+        timeout=30,
+    )
+    response.raise_for_status()
+    try:
+        payload = response.json()
+        data = payload["data"]
+        structure = data["structures"][0]
+        data_set = data["dataSets"][0]
+        series_dimensions = structure["dimensions"]["series"]
+        observation_years = [
+            value.get("id", value.get("value"))
+            for value in structure["dimensions"]["observation"][0]["values"]
+        ]
+    except (ValueError, KeyError, IndexError, TypeError) as exc:
+        raise ValueError(
+            "Empty or malformed IMF response for GFS_SOO"
+        ) from exc
+
+    records = []
+    for series_key, series in data_set["series"].items():
+        dimension_indexes = [int(idx) for idx in series_key.split(":")]
+        labels = {
+            dim["id"]: dim["values"][idx].get(
+                "id", dim["values"][idx].get("value")
+            )
+            for dim, idx in zip(series_dimensions, dimension_indexes)
+        }
+        indicator = labels.get("INDICATOR")
+        if indicator not in required_indicators:
+            continue
+        for observation_key, observation in series.get(
+            "observations", {}
+        ).items():
+            value = observation[0]
+            records.append(
+                {
+                    "year": observation_years[int(observation_key)],
+                    "indicator": indicator,
+                    "value": value,
+                    "country_iso": country_iso,
+                    "sector": sector,
+                    "dataset": "IMF.STA:GFS_SOO(12.0.0)",
+                }
+            )
+
+    imf_data = pd.DataFrame(records)
+    if imf_data.empty:
+        raise ValueError("Empty or malformed IMF response for GFS_SOO")
+
+    imf_data["year"] = pd.to_numeric(imf_data["year"], errors="coerce")
+    imf_data["value"] = pd.to_numeric(imf_data["value"], errors="coerce")
+    imf_data = imf_data.dropna(subset=["year", "value"])
+
+    if data_path is not None:
+        data_path.parent.mkdir(parents=True, exist_ok=True)
+        imf_data.sort_values(["indicator", "year"]).to_csv(
+            data_path, index=False
+        )
+        print(f"IMF data saved to {data_path}")
+
+    available = (
+        imf_data.pivot_table(
+            index="year",
+            columns="indicator",
+            values="value",
+            aggfunc="first",
+        )
+        .sort_index()
+        .dropna(subset=sorted(required_indicators))
+    )
+    available = available.loc[available.index <= int(target_year)]
+
+    if available.empty:
+        raise ValueError(
+            "No complete IMF data available for "
+            f"{country_iso} sector {sector} up to {target_year}"
+        )
+
+    selected_year = (
+        int(target_year)
+        if int(target_year) in available.index
+        else int(available.index.max())
+    )
+    if selected_year != int(target_year):
+        print(
+            f"Warning: No IMF data for {target_year}. "
+            f"Using last available year: {selected_year}"
+        )
+
+    values = available.loc[selected_year]
+    return {
+        "alpha_T": [(values["G27_T"] - values["G271_T"]) / 100],
+        "alpha_G": [
+            (values["G2_T"] - values["G24_T"] - values["G27_T"]) / 100
+        ],
+    }
 
 
 def get_macro_params(
@@ -19,6 +150,8 @@ def get_macro_params(
     data_end_date=datetime.datetime(2024, 12, 31),
     country_iso="ETH",
     update_from_api=False,
+    imf_data_year=None,
+    imf_data_path=None,
 ):
     """
     Compute values of parameters that are derived from macro data
@@ -27,6 +160,9 @@ def get_macro_params(
         data_start_date (datetime): start date for data
         data_end_date (datetime): end date for data
         country_iso (str): ISO code for country
+        imf_data_year (int | None): IMF target year override. Defaults to
+            data_end_date.year when None.
+        imf_data_path (str | Path | None): optional path to save IMF CSV data
 
     Returns:
         macro_parameters (dict): dictionary of parameter values
@@ -79,7 +215,7 @@ def get_macro_params(
             print(
                 f"g_y_annual updated from World Bank API: {macro_parameters['g_y_annual']}"
             )
-        except:
+        except Exception:
             print("Failed to retrieve data from World Bank")
             print("Will not update the following parameters:")
             print(
@@ -137,7 +273,7 @@ def get_macro_params(
             print(
                 f"gamma updated from ILOSTAT API: {macro_parameters['gamma']}"
             )
-        except:
+        except Exception:
             print("Failed to retrieve data from ILOSTAT")
             print("Will not update gamma")
     else:
@@ -148,19 +284,26 @@ def get_macro_params(
     """
 
     if update_from_api:
-        # alpha_T, non-social security transfers (grants, subsidies, and other transfers) as a fraction of GDP
-        # source: IMF GFS (12.0.0), indicator G271_T, Budgetary central government
-        # source link: https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.STA:GFS_SOO(12.0.0)&INDICATOR=G271_T
-        # 2023 = 3.38% of GDP
-        macro_parameters["alpha_T"] = [
-            0.034 + 0.016
-        ]  # including social benefits of 1.6% of GDP
-
-        # alpha_G, total government expenditure as a fraction of GDP
-        # source: IMF WEO (9.0.0), indicator GGX, General government expenditure (% of GDP)
-        # source link: https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.RES:WEO(9.0.0)&INDICATOR=GGX
-        # 2024 = 9.538% of GDP
-        macro_parameters["alpha_G"] = [0.095]
+        try:
+            imf_year = (
+                data_end_date.year if imf_data_year is None else imf_data_year
+            )
+            macro_parameters.update(
+                _get_imf_macro_params(
+                    country_iso,
+                    imf_year,
+                    data_path=imf_data_path,
+                )
+            )
+            print(
+                f"alpha_T updated from IMF data: {macro_parameters['alpha_T']}"
+            )
+            print(
+                f"alpha_G updated from IMF data: {macro_parameters['alpha_G']}"
+            )
+        except Exception:
+            print("Failed to retrieve data from IMF")
+            print("Will not update alpha_T, alpha_G")
 
         # initial_debt_ratio, gross general government debt as a fraction of GDP
         # source: from the IMF WEO, Series ETH.GGXWDG_NGDP.A — Gross general government debt (% of GDP).
@@ -195,28 +338,31 @@ def get_macro_params(
         as the dependent variable
         """
 
-        # # estimate r_gov_shift and r_gov_scale
-        sov_y = np.arange(20, 120) / 10
-        corp_yhat = 8.199 - (2.975 * sov_y) + (0.478 * sov_y**2)
-        corp_yhat = sm.add_constant(corp_yhat)
-        mod = sm.OLS(
-            sov_y,
-            corp_yhat,
-        )
-        res = mod.fit()
-        # First term is the constant and needs to be divided by 100 to have
-        # the correct unit. Second term is the coefficient
-        macro_parameters["r_gov_shift"] = [-res.params[0] / 100]
-        macro_parameters["r_gov_scale"] = [res.params[1]]
-        # Report new values
-        print(f"alpha_T updated from IMF data: {macro_parameters['alpha_T']}")
-        print(f"alpha_G updated from IMF data: {macro_parameters['alpha_G']}")
-        print(
-            f"r_gov_shift updated from IMF data: {macro_parameters['r_gov_shift']}"
-        )
-        print(
-            f"r_gov_scale updated from IMF data: {macro_parameters['r_gov_scale']}"
-        )
+        try:
+            import statsmodels.api as sm
+
+            # # estimate r_gov_shift and r_gov_scale
+            sov_y = np.arange(20, 120) / 10
+            corp_yhat = 8.199 - (2.975 * sov_y) + (0.478 * sov_y**2)
+            corp_yhat = sm.add_constant(corp_yhat)
+            mod = sm.OLS(
+                sov_y,
+                corp_yhat,
+            )
+            res = mod.fit()
+            # First term is the constant and needs to be divided by 100 to have
+            # the correct unit. Second term is the coefficient
+            macro_parameters["r_gov_shift"] = [-res.params[0] / 100]
+            macro_parameters["r_gov_scale"] = [res.params[1]]
+            print(
+                f"r_gov_shift updated from IMF data: {macro_parameters['r_gov_shift']}"
+            )
+            print(
+                f"r_gov_scale updated from IMF data: {macro_parameters['r_gov_scale']}"
+            )
+        except Exception:
+            print("Failed to compute r_gov_shift, r_gov_scale")
+            print("Will not update r_gov_shift, r_gov_scale")
     else:
         print("Not updating alpha_T, alpha_G, r_gov_shift, r_gov_scale")
 

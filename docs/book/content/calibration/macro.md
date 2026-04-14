@@ -39,13 +39,17 @@ where $\tau_d$ is the scale parameter and $\mu_d$ is the level shift parameter. 
 
 ### Aggregate transfers
 
-Aggregate (non-Social Security) transfers to households are set as a share of GDP with the parameter $\alpha_T$. We exclude Social Security from transfers since it is modeled specifically. With this definition, the share of transfers to GDP in 2015 is 0.034 according to [IMF data](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.STA:GFS_SOO(12.0.0)&INDICATOR=G271_T).
+Aggregate (non-Social Security) transfers to households are set as a share of GDP with the parameter $\alpha_T$. We exclude Social Security from transfers since it is modeled specifically. We compute this from the IMF GFS Statement of Operations data as
+    <center>$\alpha_T = (\texttt{G27\_T} - \texttt{G271\_T}) / 100$</center>
+For Ethiopia, the available IMF GFS percent-of-GDP series for this calibration are published under the `Budgetary central government` sector (`S1311B`), so the OG-ETH calibration uses that sector rather than mechanically reusing another country repo's sector code. Using the 2024 IMF values for `G27_T` and `G271_T`, the default calibration sets $\alpha_T = 0.0$.
 
 ### Government expenditures
 
 Government spending on goods and services are also set as a share of GDP with the parameter $\alpha_G$. We define government spending as:
     <center>Government Spending = Total Outlays - Transfers - Net Interest on Debt - Social Security</center>
-With this definition, the share of government expenditure to GDP is 0.095 based on [data from the IMF](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.RES:WEO(9.0.0)&INDICATOR=GGX).
+In IMF GFS Statement of Operations terms, we compute
+    <center>$\alpha_G = (\texttt{G2\_T} - \texttt{G24\_T} - \texttt{G27\_T}) / 100$</center>
+Using Ethiopia's 2024 `S1311B` IMF GFS percent-of-GDP series, the default calibration sets $\alpha_G = 0.0453$.
 
 
 (SecLWI_footnotes)=
