@@ -94,13 +94,6 @@ def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):
 # under budgetary central government (S1311B), not the broader S1311 sector.
 IMF_GFS_SECTOR_BY_COUNTRY = {"ETH": "S1311B"}
 
-# Ethiopia's IMF GFS social-benefits series do not capture the FY2024/25
-# government cash transfers to rural PSNP and urban UPSNP that best match the
-# OG-ETH alpha_T concept of non-pension transfers to households. For the 2024
-# calibration year we therefore use the FY2024/25 program documents as the
-# packaged/default alpha_T source instead of the IMF GFS G27/G271 series.
-MANUAL_ALPHA_T_BY_COUNTRY_YEAR = {("ETH", 2024): [0.0035]}
-
 # For Ethiopia, alpha_G is calibrated from general government final
 # consumption expenditure because that better matches the OG-ETH concept of
 # government spending on goods, services, and public goods than the available
@@ -119,16 +112,6 @@ def _get_imf_gfs_sector(country_iso):
     Return the IMF GFS sector code to use for a country's alpha queries.
     """
     return IMF_GFS_SECTOR_BY_COUNTRY.get(country_iso.upper(), "S1311")
-
-
-def _get_manual_alpha_t(country_iso, target_year):
-    """
-    Return a country/year-specific alpha_T override when IMF GFS does not map
-    cleanly to the model concept of non-pension household transfers.
-    """
-    return MANUAL_ALPHA_T_BY_COUNTRY_YEAR.get(
-        (country_iso.upper(), int(target_year))
-    )
 
 
 def _get_world_bank_alpha_g(wb_data, country_iso, target_year):
@@ -161,12 +144,13 @@ def _get_world_bank_alpha_g(wb_data, country_iso, target_year):
         if int(target_year) in alpha_g_series.index
         else int(alpha_g_series.index.max())
     )
+    value = alpha_g_series.loc[selected_year] / 100
     if selected_year != int(target_year):
         print(
-            f"Warning: No World Bank alpha_G data for {target_year}. "
-            f"Using last available year: {selected_year}"
+            f"No World Bank alpha_G data for {country_iso} in {target_year}. "
+            f"Using last available year {selected_year}: alpha_G={value:.4f}"
         )
-    return [alpha_g_series.loc[selected_year] / 100]
+    return [value]
 
 
 def _get_world_bank_g_y_annual(wb_data, country_iso, data_start_date):
@@ -306,21 +290,21 @@ def _get_imf_macro_params(country_iso, target_year, data_path=None):
         if int(target_year) in available.index
         else int(available.index.max())
     )
-    if selected_year != int(target_year):
-        print(
-            f"Warning: No IMF data for {target_year}. "
-            f"Using last available year: {selected_year}"
-        )
 
     values = available.loc[selected_year]
     # Map the selected IMF GFS observations into the OG-ETH transfer and
     # government-spending concepts.
-    return {
-        "alpha_T": [(values["G27_T"] - values["G271_T"]) / 100],
-        "alpha_G": [
-            (values["G2_T"] - values["G24_T"] - values["G27_T"]) / 100
-        ],
-    }
+    alpha_T = (values["G27_T"] - values["G271_T"]) / 100
+    alpha_G = (values["G2_T"] - values["G24_T"] - values["G27_T"]) / 100
+
+    if selected_year != int(target_year):
+        print(
+            f"No complete IMF GFS data for {country_iso} in {target_year}. "
+            f"Using last available year {selected_year}: "
+            f"alpha_T={alpha_T:.4f}, alpha_G={alpha_G:.4f}"
+        )
+
+    return {"alpha_T": [alpha_T], "alpha_G": [alpha_G]}
 
 
 def get_macro_params(
@@ -474,14 +458,7 @@ def get_macro_params(
         except Exception:
             print("Failed to retrieve data from IMF")
 
-        manual_alpha_t = _get_manual_alpha_t(country_iso, imf_year)
-        if manual_alpha_t is not None:
-            macro_parameters["alpha_T"] = manual_alpha_t
-            print(
-                "alpha_T updated from Ethiopia FY2024/25 IMF/World Bank "
-                f"safety-net sources: {macro_parameters['alpha_T']}"
-            )
-        elif imf_macro_parameters is not None:
+        if imf_macro_parameters is not None:
             macro_parameters["alpha_T"] = imf_macro_parameters["alpha_T"]
             print(
                 f"alpha_T updated from IMF data: {macro_parameters['alpha_T']}"
