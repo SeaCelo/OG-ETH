@@ -37,6 +37,26 @@ We assume that there is a wedge between the real rate of return on private capit
 
 where $\tau_d$ is the scale parameter and $\mu_d$ is the level shift parameter.  We set the values of these two parameters to 0.245 and -0.034, respectively.  These are found by using the estimated relationship between corporate and sovereign yields in {cite}`LMW2023` (Table 8, Column 2) and simulating a series of corporate yields given a series of sovereign yields between 2% and 12%.  We then estimate the scale and level shift parameters that best fit these simulated data using ordinary least squares.
 
+We use this emerging-markets relationship because a calibration based on readily available US corporate and sovereign yield data would be a poor proxy for Ethiopia. The goal of these parameters is not to capture a country-specific live spread series, but to impose a reasonable wedge between private and government borrowing rates using evidence from a broader sample of emerging markets.
+
+These values are fixed calibrated defaults in [`ogeth_default_parameters.json`](https://github.com/EAPD-DRB/OG-ETH/blob/main/ogeth/ogeth_default_parameters.json); they are not refreshed from live data during calibration updates. The following Python reproduces the one-time calculation used to obtain them:
+
+```python
+import numpy as np
+import statsmodels.api as sm
+
+sov_y = np.arange(20, 120) / 10
+corp_yhat = 8.199 - (2.975 * sov_y) + (0.478 * sov_y**2)
+corp_yhat = sm.add_constant(corp_yhat)
+res = sm.OLS(sov_y, corp_yhat).fit()
+
+r_gov_shift = -res.params[0] / 100
+r_gov_scale = res.params[1]
+
+print(r_gov_shift)  # -0.03376625043803517
+print(r_gov_scale)  # 0.24484763593657818
+```
+
 ### Aggregate transfers
 
 Aggregate (non-Social Security) transfers to households are set as a share of GDP with the parameter $\alpha_T$. We exclude Social Security from transfers since it is modeled specifically. In OG-ETH, the relevant concept is government-financed, non-pension transfers paid to households. For Ethiopia, the IMF GFS `S1311B` social-benefits series (`G27_T` and `G271_T`) do not line up well with that concept in the calibration year because they miss the main FY2024/25 government cash contributions to the rural PSNP and urban UPSNP.

@@ -6,7 +6,6 @@ parameters for the OG-ETH model that rely on macro data for calibration.
 
 # imports
 import pandas as pd
-import numpy as np
 import requests
 import datetime
 from io import StringIO
@@ -212,6 +211,9 @@ def _get_imf_macro_params(country_iso, target_year, data_path=None):
     sector = _get_imf_gfs_sector(country_iso)
     required_indicators = {"G2_T", "G24_T", "G27_T", "G271_T"}
     data_path = Path(data_path) if data_path is not None else None
+
+    # Request the IMF SDMX 3.0 payload for the country/sector slice that
+    # contains the four GFS indicators needed for alpha_T and alpha_G.
     response = requests.get(
         (
             "https://api.imf.org/external/sdmx/3.0/data/dataflow/"
@@ -235,6 +237,8 @@ def _get_imf_macro_params(country_iso, target_year, data_path=None):
             "Empty or malformed IMF response for GFS_SOO"
         ) from exc
 
+    # Flatten the SDMX series/observation structure into one row per
+    # indicator-year observation so the completeness checks below are simple.
     records = []
     for series_key, series in data_set["series"].items():
         dimension_indexes = [int(idx) for idx in series_key.split(":")]
@@ -277,6 +281,8 @@ def _get_imf_macro_params(country_iso, target_year, data_path=None):
         )
         print(f"IMF data saved to {data_path}")
 
+    # We only use a year when all four indicators are available. If the target
+    # year is incomplete, fall back to the latest complete year at or before it.
     available = (
         imf_data.pivot_table(
             index="year",
@@ -307,6 +313,8 @@ def _get_imf_macro_params(country_iso, target_year, data_path=None):
         )
 
     values = available.loc[selected_year]
+    # Map the selected IMF GFS observations into the OG-ETH transfer and
+    # government-spending concepts.
     return {
         "alpha_T": [(values["G27_T"] - values["G271_T"]) / 100],
         "alpha_G": [
@@ -518,45 +526,7 @@ def get_macro_params(
         # We use the latest year.
         macro_parameters["zeta_D"] = [0.12]
 
-        """"
-        Estimate the discount on sovereign yields relative to private debt
-        Follow the methodology in Li, Magud, Werner, Witte (2021)
-        available at:
-        https://www.imf.org/en/Publications/WP/Issues/2021/06/04/The-Long-Run-Impact-of-Sovereign-Yields-on-Corporate-Yields-in-Emerging-Markets-50224
-        discussion is here: https://github.com/EAPD-DRB/OG-ZAF/issues/22
-        Steps:
-        1) Generate modelled corporate yields (corp_yhat) for a range of
-        sovereign yields (sov_y)  using the estimated equation in col 2 of
-        table 8 (and figure 3). 2) Estimate the OLS using sovereign yields
-        as the dependent variable
-        """
-
-        try:
-            import statsmodels.api as sm
-
-            # # estimate r_gov_shift and r_gov_scale
-            sov_y = np.arange(20, 120) / 10
-            corp_yhat = 8.199 - (2.975 * sov_y) + (0.478 * sov_y**2)
-            corp_yhat = sm.add_constant(corp_yhat)
-            mod = sm.OLS(
-                sov_y,
-                corp_yhat,
-            )
-            res = mod.fit()
-            # First term is the constant and needs to be divided by 100 to have
-            # the correct unit. Second term is the coefficient
-            macro_parameters["r_gov_shift"] = [-res.params[0] / 100]
-            macro_parameters["r_gov_scale"] = [res.params[1]]
-            print(
-                f"r_gov_shift updated from IMF data: {macro_parameters['r_gov_shift']}"
-            )
-            print(
-                f"r_gov_scale updated from IMF data: {macro_parameters['r_gov_scale']}"
-            )
-        except Exception:
-            print("Failed to compute r_gov_shift, r_gov_scale")
-            print("Will not update r_gov_shift, r_gov_scale")
     else:
-        print("Not updating alpha_T, alpha_G, r_gov_shift, r_gov_scale")
+        print("Not updating alpha_T, alpha_G")
 
     return macro_parameters

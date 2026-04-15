@@ -3,8 +3,6 @@ Tests of macro_params.py module
 """
 
 import datetime
-import sys
-import types
 
 import pandas as pd
 import pytest
@@ -199,30 +197,6 @@ def _mock_requests_get(
     monkeypatch.setattr(macro_params.requests, "get", fake_get)
 
 
-def _mock_statsmodels(monkeypatch, params=None):
-    fake_statsmodels = types.ModuleType("statsmodels")
-    fake_api = types.ModuleType("statsmodels.api")
-
-    def add_constant(values):
-        return values
-
-    class OLS:
-        def __init__(self, endog, exog):
-            self.endog = endog
-            self.exog = exog
-
-        def fit(self):
-            result = types.SimpleNamespace()
-            result.params = params or [3.376625043803517, 0.24484763593657818]
-            return result
-
-    fake_api.add_constant = add_constant
-    fake_api.OLS = OLS
-    fake_statsmodels.api = fake_api
-    monkeypatch.setitem(sys.modules, "statsmodels", fake_statsmodels)
-    monkeypatch.setitem(sys.modules, "statsmodels.api", fake_api)
-
-
 def test_get_macro_params_update_from_api_false_returns_empty_dict():
     test_dict = macro_params.get_macro_params(update_from_api=False)
 
@@ -232,7 +206,6 @@ def test_get_macro_params_update_from_api_false_returns_empty_dict():
 
 def test_get_macro_params_update_from_api_true(monkeypatch):
     requested_urls = []
-    _mock_statsmodels(monkeypatch)
     _mock_requests_get(monkeypatch, requested_urls)
 
     test_dict = macro_params.get_macro_params(update_from_api=True)
@@ -240,8 +213,6 @@ def test_get_macro_params_update_from_api_true(monkeypatch):
     assert isinstance(test_dict, dict)
     assert sorted(test_dict.keys()) == sorted(
         [
-            "r_gov_shift",
-            "r_gov_scale",
             "alpha_T",
             "alpha_G",
             "initial_debt_ratio",
@@ -258,8 +229,6 @@ def test_get_macro_params_update_from_api_true(monkeypatch):
     assert test_dict["gamma"] == [pytest.approx(0.61791)]
     assert test_dict["alpha_T"] == [pytest.approx(0.0035)]
     assert test_dict["alpha_G"] == [pytest.approx(0.05515691)]
-    assert test_dict["r_gov_shift"] == [pytest.approx(-0.03376625043803517)]
-    assert test_dict["r_gov_scale"] == [pytest.approx(0.24484763593657818)]
     assert any(
         ".ETH.S1311B.G2M." in url or "/ETH.S1311B.G2M." in url
         for url in requested_urls
@@ -344,7 +313,6 @@ def test_get_imf_macro_params_falls_back_to_last_available_year(monkeypatch):
 
 def test_get_macro_params_passes_imf_year_override(monkeypatch):
     requested_urls = []
-    _mock_statsmodels(monkeypatch)
     _mock_requests_get(
         monkeypatch,
         requested_urls,
@@ -397,7 +365,6 @@ def test_get_world_bank_g_y_annual_uses_ethiopia_2006_window():
 
 def test_eth_alpha_g_updates_when_imf_fails(monkeypatch):
     requested_urls = []
-    _mock_statsmodels(monkeypatch)
 
     def fake_get(url, params=None, headers=None, timeout=None):
         requested_urls.append(url)
@@ -428,7 +395,6 @@ def test_eth_alpha_t_updates_without_world_bank_alpha_g(monkeypatch):
     # in get_macro_params swallows the resulting fetch error, so alpha_T
     # still updates from IMF but alpha_G is not set.
     requested_urls = []
-    _mock_statsmodels(monkeypatch)
     _mock_requests_get(
         monkeypatch,
         requested_urls,
