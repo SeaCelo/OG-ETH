@@ -95,12 +95,106 @@ def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):
 # under budgetary central government (S1311B), not the broader S1311 sector.
 IMF_GFS_SECTOR_BY_COUNTRY = {"ETH": "S1311B"}
 
+# Ethiopia's IMF GFS social-benefits series do not capture the FY2024/25
+# government cash transfers to rural PSNP and urban UPSNP that best match the
+# OG-ETH alpha_T concept of non-pension transfers to households. For the 2024
+# calibration year we therefore use the FY2024/25 program documents as the
+# packaged/default alpha_T source instead of the IMF GFS G27/G271 series.
+MANUAL_ALPHA_T_BY_COUNTRY_YEAR = {("ETH", 2024): [0.0035]}
+
+# For Ethiopia, alpha_G is calibrated from general government final
+# consumption expenditure because that better matches the OG-ETH concept of
+# government spending on goods, services, and public goods than the available
+# budgetary central government IMF GFS outlay series.
+WB_ALPHA_G_BY_COUNTRY = {
+    "ETH": "General government final consumption expenditure (% of GDP)"
+}
+
+# Ethiopia's default long-run productivity-growth calibration uses the
+# post-2005 growth regime rather than the full World Bank history.
+GDP_GROWTH_START_YEAR_BY_COUNTRY = {"ETH": 2006}
+
 
 def _get_imf_gfs_sector(country_iso):
     """
     Return the IMF GFS sector code to use for a country's alpha queries.
     """
     return IMF_GFS_SECTOR_BY_COUNTRY.get(country_iso.upper(), "S1311")
+
+
+def _get_manual_alpha_t(country_iso, target_year):
+    """
+    Return a country/year-specific alpha_T override when IMF GFS does not map
+    cleanly to the model concept of non-pension household transfers.
+    """
+    return MANUAL_ALPHA_T_BY_COUNTRY_YEAR.get(
+        (country_iso.upper(), int(target_year))
+    )
+
+
+def _get_world_bank_alpha_g(wb_data, country_iso, target_year):
+    """
+    Return a country-specific alpha_G from World Bank data when the spending
+    concept aligns better with OG-ETH than the available IMF GFS coverage.
+    """
+    series_name = WB_ALPHA_G_BY_COUNTRY.get(country_iso.upper())
+    if series_name is None or series_name not in wb_data.columns:
+        return None
+
+    if isinstance(wb_data.index, pd.MultiIndex):
+        years = wb_data.index.get_level_values(-1)
+    else:
+        years = wb_data.index
+
+    alpha_g_series = pd.Series(
+        wb_data[series_name].values,
+        index=pd.to_numeric(years, errors="coerce"),
+    ).dropna()
+    alpha_g_series = alpha_g_series[alpha_g_series.index <= int(target_year)]
+    if alpha_g_series.empty:
+        raise ValueError(
+            "No World Bank government consumption data available for "
+            f"{country_iso} up to {target_year}"
+        )
+
+    selected_year = (
+        int(target_year)
+        if int(target_year) in alpha_g_series.index
+        else int(alpha_g_series.index.max())
+    )
+    if selected_year != int(target_year):
+        print(
+            f"Warning: No World Bank alpha_G data for {target_year}. "
+            f"Using last available year: {selected_year}"
+        )
+    return [alpha_g_series.loc[selected_year] / 100]
+
+
+def _get_world_bank_g_y_annual(wb_data, country_iso, data_start_date):
+    """
+    Compute average GDP-per-capita growth using the country-specific
+    calibration window rather than the full available history.
+    """
+    series_name = "GDP per capita (constant 2015 US$)"
+    if series_name not in wb_data.columns:
+        return None
+
+    if isinstance(wb_data.index, pd.MultiIndex):
+        years = wb_data.index.get_level_values(-1)
+    else:
+        years = wb_data.index
+
+    growth_start_year = max(
+        int(data_start_date.year),
+        GDP_GROWTH_START_YEAR_BY_COUNTRY.get(country_iso.upper(), 0),
+    )
+    gdp_pc_series = pd.Series(
+        wb_data[series_name].values,
+        index=pd.to_numeric(years, errors="coerce"),
+    ).sort_index(ascending=False)
+    gdp_pc_series = gdp_pc_series[gdp_pc_series.index >= growth_start_year]
+    g_y_series = gdp_pc_series.pct_change(-1)
+    return g_y_series.mean() if not g_y_series.isna().all() else None
 
 
 def _get_imf_macro_params(country_iso, target_year, data_path=None):
@@ -253,11 +347,13 @@ def get_macro_params(
     # Annual data
     wb_a_variable_dict = {
         "GDP per capita (constant 2015 US$)": "NY.GDP.PCAP.KD",
+        "General government final consumption expenditure (% of GDP)": "NE.CON.GOVT.ZS",
         # "Real GDP (constant 2015 US$)": "NY.GDP.MKTP.KD",
         # "Nominal GDP (current US$)": "NY.GDP.MKTP.CD",
         # "General government final consumption expenditure (current US$)": "NE.CON.GOVT.CD",
     }
 
+    wb_alpha_g = None
     if update_from_api:
         try:
             # Pull annual series from the World Bank v2 API
@@ -271,13 +367,8 @@ def get_macro_params(
 
             # Compute annual GDP growth safely
             if "GDP per capita (constant 2015 US$)" in wb_data_a.columns:
-                g_y_series = wb_data_a[
-                    "GDP per capita (constant 2015 US$)"
-                ].pct_change(-1)
-
-                # If all values are NaN, return None
-                macro_parameters["g_y_annual"] = (
-                    g_y_series.mean() if not g_y_series.isna().all() else None
+                macro_parameters["g_y_annual"] = _get_world_bank_g_y_annual(
+                    wb_data_a, country_iso, data_start_date
                 )
             else:
                 print(
@@ -287,6 +378,12 @@ def get_macro_params(
             print(
                 f"g_y_annual updated from World Bank API: {macro_parameters['g_y_annual']}"
             )
+            try:
+                wb_alpha_g = _get_world_bank_alpha_g(
+                    wb_data_a, country_iso, data_end_date.year
+                )
+            except ValueError:
+                wb_alpha_g = None
         except Exception:
             print("Failed to retrieve data from World Bank")
             print("Will not update the following parameters:")
@@ -356,26 +453,50 @@ def get_macro_params(
     """
 
     if update_from_api:
+        imf_year = (
+            data_end_date.year if imf_data_year is None else imf_data_year
+        )
+        imf_macro_parameters = None
         try:
-            imf_year = (
-                data_end_date.year if imf_data_year is None else imf_data_year
-            )
-            macro_parameters.update(
-                _get_imf_macro_params(
-                    country_iso,
-                    imf_year,
-                    data_path=imf_data_path,
-                )
-            )
-            print(
-                f"alpha_T updated from IMF data: {macro_parameters['alpha_T']}"
-            )
-            print(
-                f"alpha_G updated from IMF data: {macro_parameters['alpha_G']}"
+            imf_macro_parameters = _get_imf_macro_params(
+                country_iso,
+                imf_year,
+                data_path=imf_data_path,
             )
         except Exception:
             print("Failed to retrieve data from IMF")
-            print("Will not update alpha_T, alpha_G")
+
+        manual_alpha_t = _get_manual_alpha_t(country_iso, imf_year)
+        if manual_alpha_t is not None:
+            macro_parameters["alpha_T"] = manual_alpha_t
+            print(
+                "alpha_T updated from Ethiopia FY2024/25 IMF/World Bank "
+                f"safety-net sources: {macro_parameters['alpha_T']}"
+            )
+        elif imf_macro_parameters is not None:
+            macro_parameters["alpha_T"] = imf_macro_parameters["alpha_T"]
+            print(
+                f"alpha_T updated from IMF data: {macro_parameters['alpha_T']}"
+            )
+        else:
+            print("Will not update alpha_T")
+
+        if country_iso.upper() in WB_ALPHA_G_BY_COUNTRY:
+            if wb_alpha_g is not None:
+                macro_parameters["alpha_G"] = wb_alpha_g
+                print(
+                    "alpha_G updated from World Bank government consumption "
+                    f"data: {macro_parameters['alpha_G']}"
+                )
+            else:
+                print("Will not update alpha_G")
+        elif imf_macro_parameters is not None:
+            macro_parameters["alpha_G"] = imf_macro_parameters["alpha_G"]
+            print(
+                f"alpha_G updated from IMF data: {macro_parameters['alpha_G']}"
+            )
+        else:
+            print("Will not update alpha_G")
 
         # initial_debt_ratio, gross general government debt as a fraction of GDP
         # source: from the IMF WEO, Series ETH.GGXWDG_NGDP.A — Gross general government debt (% of GDP).

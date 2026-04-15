@@ -151,6 +151,9 @@ _DEFAULT_WB_PAYLOADS = {
     "NY.GDP.PCAP.KD": _wb_payload(
         [("2024", 100.0), ("2023", 80.0), ("2022", 64.0)]
     ),
+    "NE.CON.GOVT.ZS": _wb_payload(
+        [("2024", 5.515691), ("2023", 6.317772), ("2022", 7.361735)]
+    ),
 }
 
 
@@ -253,8 +256,8 @@ def test_get_macro_params_update_from_api_true(monkeypatch):
     assert test_dict["zeta_D"] == [0.12]
     assert test_dict["g_y_annual"] == pytest.approx(0.25)
     assert test_dict["gamma"] == [pytest.approx(0.61791)]
-    assert test_dict["alpha_T"] == [pytest.approx(0.0)]
-    assert test_dict["alpha_G"] == [pytest.approx(0.04525629819754754)]
+    assert test_dict["alpha_T"] == [pytest.approx(0.0035)]
+    assert test_dict["alpha_G"] == [pytest.approx(0.05515691)]
     assert test_dict["r_gov_shift"] == [pytest.approx(-0.03376625043803517)]
     assert test_dict["r_gov_scale"] == [pytest.approx(0.24484763593657818)]
     assert any(
@@ -272,6 +275,13 @@ def test_get_imf_macro_params_uses_eth_budgetary_sector(monkeypatch):
     assert result["alpha_T"] == [pytest.approx(0.0)]
     assert result["alpha_G"] == [pytest.approx(0.04525629819754754)]
     assert any("/ETH.S1311B.G2M.*.POGDP_PT.A" in url for url in requested_urls)
+
+
+def test_get_manual_alpha_t_returns_eth_2024_override():
+    assert macro_params._get_manual_alpha_t("ETH", 2024) == [
+        pytest.approx(0.0035)
+    ]
+    assert macro_params._get_manual_alpha_t("ETH", 2023) is None
 
 
 def test_get_imf_macro_params_overwrites_saved_file(monkeypatch, tmp_path):
@@ -354,4 +364,86 @@ def test_get_macro_params_passes_imf_year_override(monkeypatch):
         data_end_date=datetime.datetime(2024, 12, 31),
     )
 
-    assert test_dict["alpha_G"] == [pytest.approx(0.05568952015661374)]
+    assert test_dict["alpha_G"] == [pytest.approx(0.05515691)]
+
+
+def test_get_world_bank_alpha_g_returns_eth_override():
+    wb_data = pd.DataFrame(
+        {"General government final consumption expenditure (% of GDP)": [5.515691]},
+        index=["2024"],
+    )
+
+    assert macro_params._get_world_bank_alpha_g(wb_data, "ETH", 2024) == [
+        pytest.approx(0.05515691)
+    ]
+
+
+def test_get_world_bank_g_y_annual_uses_ethiopia_2006_window():
+    wb_data = pd.DataFrame(
+        {"GDP per capita (constant 2015 US$)": [100.0, 90.0, 80.0, 40.0]},
+        index=["2024", "2023", "2006", "2005"],
+    )
+
+    result = macro_params._get_world_bank_g_y_annual(
+        wb_data,
+        "ETH",
+        datetime.datetime(1947, 1, 1),
+    )
+
+    # 2005 should be excluded, so the average is over 2024/2023 and 2023/2006
+    expected = ((100.0 / 90.0) - 1 + (90.0 / 80.0) - 1) / 2
+    assert result == pytest.approx(expected)
+
+
+def test_eth_alpha_g_updates_when_imf_fails(monkeypatch):
+    requested_urls = []
+    _mock_statsmodels(monkeypatch)
+
+    def fake_get(url, params=None, headers=None, timeout=None):
+        requested_urls.append(url)
+        if "worldbank.org" in url:
+            indicator_code = url.rstrip("/").split("/")[-1]
+            return MockResponse(
+                json_data=_DEFAULT_WB_PAYLOADS[indicator_code]
+            )
+        if "rplumber.ilo.org" in url:
+            return MockResponse(
+                text="time,obs_value\n2024,38.209\n2023,38.0\n"
+            )
+        if "api.imf.org" in url:
+            raise requests.HTTPError("mock IMF failure")
+        raise AssertionError(f"Unexpected URL requested in test: {url}")
+
+    monkeypatch.setattr(macro_params.requests, "get", fake_get)
+
+    test_dict = macro_params.get_macro_params(update_from_api=True)
+
+    assert test_dict["alpha_T"] == [pytest.approx(0.0035)]
+    assert test_dict["alpha_G"] == [pytest.approx(0.05515691)]
+
+
+def test_eth_alpha_t_updates_without_world_bank_alpha_g(monkeypatch):
+    # Simulate the World Bank alpha_G series returning no observations
+    # while the GDP-per-capita series is complete. The outer try/except
+    # in get_macro_params swallows the resulting fetch error, so alpha_T
+    # still updates from IMF but alpha_G is not set.
+    requested_urls = []
+    _mock_statsmodels(monkeypatch)
+    _mock_requests_get(
+        monkeypatch,
+        requested_urls,
+        wb_payloads={
+            "NY.GDP.PCAP.KD": _wb_payload(
+                [("2024", 100.0), ("2023", 80.0), ("2022", 64.0)]
+            ),
+            "NE.CON.GOVT.ZS": [
+                {"page": 1, "pages": 1, "per_page": "10000", "total": 0},
+                [],
+            ],
+        },
+    )
+
+    test_dict = macro_params.get_macro_params(update_from_api=True)
+
+    assert test_dict["alpha_T"] == [pytest.approx(0.0035)]
+    assert "alpha_G" not in test_dict
