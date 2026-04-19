@@ -1,7 +1,6 @@
 """
-This module uses data from World Bank WDI, World Bank Quarterly Public
-Sector Debt (QPSD) database, the IMF, and UN ILO to find values for
-parameters for the OG-ETH model that rely on macro data for calibration.
+This module uses World Bank WDI, UN ILO, and documented fiscal-source
+values to update OG-ETH macro calibration parameters.
 """
 
 # imports
@@ -9,7 +8,6 @@ import pandas as pd
 import requests
 import datetime
 from io import StringIO
-from pathlib import Path
 
 
 def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):
@@ -89,11 +87,6 @@ def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):
     return data
 
 
-# IMF GFS coverage differs by country. For Ethiopia, the percent-of-GDP
-# Statement of Operations series used for alpha_T and alpha_G are published
-# under budgetary central government (S1311B), not the broader S1311 sector.
-IMF_GFS_SECTOR_BY_COUNTRY = {"ETH": "S1311B"}
-
 # For Ethiopia, alpha_G is calibrated from general government final
 # consumption expenditure because that better matches the OG-ETH concept of
 # government spending on goods, services, and public goods than the available
@@ -105,13 +98,6 @@ WB_ALPHA_G_BY_COUNTRY = {
 # Ethiopia's default long-run productivity-growth calibration uses the
 # post-2005 growth regime rather than the full World Bank history.
 GDP_GROWTH_START_YEAR_BY_COUNTRY = {"ETH": 2006}
-
-
-def _get_imf_gfs_sector(country_iso):
-    """
-    Return the IMF GFS sector code to use for a country's alpha queries.
-    """
-    return IMF_GFS_SECTOR_BY_COUNTRY.get(country_iso.upper(), "S1311")
 
 
 def _get_world_bank_alpha_g(wb_data, country_iso, target_year):
@@ -180,140 +166,11 @@ def _get_world_bank_g_y_annual(wb_data, country_iso, data_start_date):
     return g_y_series.mean() if not g_y_series.isna().all() else None
 
 
-def _get_imf_macro_params(country_iso, target_year, data_path=None):
-    """
-    Fetch IMF GFS data and compute alpha_T and alpha_G.
-
-    Args:
-        country_iso (str): ISO alpha-3 country code
-        target_year (int): preferred calibration year
-        data_path (str | Path | None): optional path to save IMF CSV data
-
-    Returns:
-        dict: IMF-derived macro parameters
-    """
-    sector = _get_imf_gfs_sector(country_iso)
-    required_indicators = {"G2_T", "G24_T", "G27_T", "G271_T"}
-    data_path = Path(data_path) if data_path is not None else None
-
-    # Request the IMF SDMX 3.0 payload for the country/sector slice that
-    # contains the four GFS indicators needed for alpha_T and alpha_G.
-    response = requests.get(
-        (
-            "https://api.imf.org/external/sdmx/3.0/data/dataflow/"
-            f"IMF.STA/GFS_SOO/12.0.0/{country_iso}.{sector}.G2M.*.POGDP_PT.A"
-        ),
-        timeout=30,
-    )
-    response.raise_for_status()
-    try:
-        payload = response.json()
-        data = payload["data"]
-        structure = data["structures"][0]
-        data_set = data["dataSets"][0]
-        series_dimensions = structure["dimensions"]["series"]
-        observation_years = [
-            value.get("id", value.get("value"))
-            for value in structure["dimensions"]["observation"][0]["values"]
-        ]
-    except (ValueError, KeyError, IndexError, TypeError) as exc:
-        raise ValueError(
-            "Empty or malformed IMF response for GFS_SOO"
-        ) from exc
-
-    # Flatten the SDMX series/observation structure into one row per
-    # indicator-year observation so the completeness checks below are simple.
-    records = []
-    for series_key, series in data_set["series"].items():
-        dimension_indexes = [int(idx) for idx in series_key.split(":")]
-        labels = {
-            dim["id"]: dim["values"][idx].get(
-                "id", dim["values"][idx].get("value")
-            )
-            for dim, idx in zip(series_dimensions, dimension_indexes)
-        }
-        indicator = labels.get("INDICATOR")
-        if indicator not in required_indicators:
-            continue
-        for observation_key, observation in series.get(
-            "observations", {}
-        ).items():
-            value = observation[0]
-            records.append(
-                {
-                    "year": observation_years[int(observation_key)],
-                    "indicator": indicator,
-                    "value": value,
-                    "country_iso": country_iso,
-                    "sector": sector,
-                    "dataset": "IMF.STA:GFS_SOO(12.0.0)",
-                }
-            )
-
-    imf_data = pd.DataFrame(records)
-    if imf_data.empty:
-        raise ValueError("Empty or malformed IMF response for GFS_SOO")
-
-    imf_data["year"] = pd.to_numeric(imf_data["year"], errors="coerce")
-    imf_data["value"] = pd.to_numeric(imf_data["value"], errors="coerce")
-    imf_data = imf_data.dropna(subset=["year", "value"])
-
-    if data_path is not None:
-        data_path.parent.mkdir(parents=True, exist_ok=True)
-        imf_data.sort_values(["indicator", "year"]).to_csv(
-            data_path, index=False
-        )
-        print(f"IMF data saved to {data_path}")
-
-    # We only use a year when all four indicators are available. If the target
-    # year is incomplete, fall back to the latest complete year at or before it.
-    available = (
-        imf_data.pivot_table(
-            index="year",
-            columns="indicator",
-            values="value",
-            aggfunc="first",
-        )
-        .sort_index()
-        .dropna(subset=sorted(required_indicators))
-    )
-    available = available.loc[available.index <= int(target_year)]
-
-    if available.empty:
-        raise ValueError(
-            "No complete IMF data available for "
-            f"{country_iso} sector {sector} up to {target_year}"
-        )
-
-    selected_year = (
-        int(target_year)
-        if int(target_year) in available.index
-        else int(available.index.max())
-    )
-
-    values = available.loc[selected_year]
-    # Map the selected IMF GFS observations into the OG-ETH transfer and
-    # government-spending concepts.
-    alpha_T = (values["G27_T"] - values["G271_T"]) / 100
-    alpha_G = (values["G2_T"] - values["G24_T"] - values["G27_T"]) / 100
-
-    if selected_year != int(target_year):
-        print(
-            f"No complete IMF GFS data for {country_iso} in {target_year}. "
-            f"Using last available year {selected_year}: "
-            f"alpha_T={alpha_T:.4f}, alpha_G={alpha_G:.4f}"
-        )
-
-    return {"alpha_T": [alpha_T], "alpha_G": [alpha_G]}
-
-
 def get_macro_params(
     data_start_date=datetime.datetime(1947, 1, 1),
     data_end_date=datetime.datetime(2024, 12, 31),
     country_iso="ETH",
     update_from_api=False,
-    imf_data_year=None,
-    imf_data_path=None,
 ):
     """
     Compute values of parameters that are derived from macro data
@@ -322,9 +179,6 @@ def get_macro_params(
         data_start_date (datetime): start date for data
         data_end_date (datetime): end date for data
         country_iso (str): ISO code for country
-        imf_data_year (int | None): IMF target year override. Defaults to
-            data_end_date.year when None.
-        imf_data_path (str | Path | None): optional path to save IMF CSV data
 
     Returns:
         macro_parameters (dict): dictionary of parameter values
@@ -441,30 +295,16 @@ def get_macro_params(
         print("Not updating from ILOSTAT API")
 
     """
-    Calibrate parameters from IMF and other sources
+    Calibrate parameters from documented fiscal sources
     """
 
     if update_from_api:
-        imf_year = (
-            data_end_date.year if imf_data_year is None else imf_data_year
-        )
-        imf_macro_parameters = None
-        try:
-            imf_macro_parameters = _get_imf_macro_params(
-                country_iso,
-                imf_year,
-                data_path=imf_data_path,
-            )
-        except Exception:
-            print("Failed to retrieve data from IMF")
-
-        if imf_macro_parameters is not None:
-            macro_parameters["alpha_T"] = imf_macro_parameters["alpha_T"]
-            print(
-                f"alpha_T updated from IMF data: {macro_parameters['alpha_T']}"
-            )
-        else:
-            print("Will not update alpha_T")
+        # Ethiopia's alpha_T is calibrated from FY2024/25 government
+        # PSNP/UPSNP cash transfers, not from IMF GFS social-benefits
+        # series. Source: IMF Country Report 25/188:
+        # 51.4 / 14,856 ~= 0.0035, with World Bank DPO P181591 as a
+        # consistent ~0.4% of GDP cross-check.
+        print("Not updating alpha_T from API for Ethiopia")
 
         if country_iso.upper() in WB_ALPHA_G_BY_COUNTRY:
             if wb_alpha_g is not None:
@@ -475,11 +315,6 @@ def get_macro_params(
                 )
             else:
                 print("Will not update alpha_G")
-        elif imf_macro_parameters is not None:
-            macro_parameters["alpha_G"] = imf_macro_parameters["alpha_G"]
-            print(
-                f"alpha_G updated from IMF data: {macro_parameters['alpha_G']}"
-            )
         else:
             print("Will not update alpha_G")
 
