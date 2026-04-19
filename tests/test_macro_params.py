@@ -128,16 +128,30 @@ def _imf_payload(indicator_year_values, country="ETH", sector="S1311B"):
     }
 
 
-def _mock_wb_download(monkeypatch):
-    def fake_download(indicator, country, start, end):
-        indicator_codes = list(indicator)
-        assert indicator_codes == ["NY.GDP.PCAP.KD"]
-        return pd.DataFrame(
-            {"NY.GDP.PCAP.KD": [100.0, 80.0, 64.0]},
-            index=["2024", "2023", "2022"],
-        )
+def _wb_payload(observations):
+    return [
+        {
+            "page": 1,
+            "pages": 1,
+            "per_page": "10000",
+            "total": len(observations),
+        },
+        [
+            {
+                "date": date,
+                "value": value,
+                "indicator": {"id": "mock-indicator"},
+            }
+            for date, value in observations
+        ],
+    ]
 
-    monkeypatch.setattr(macro_params.wb, "download", fake_download)
+
+_DEFAULT_WB_PAYLOADS = {
+    "NY.GDP.PCAP.KD": _wb_payload(
+        [("2024", 100.0), ("2023", 80.0), ("2022", 64.0)]
+    ),
+}
 
 
 def _mock_requests_get(
@@ -146,9 +160,15 @@ def _mock_requests_get(
     *,
     ilo_text=None,
     imf_json=None,
+    wb_payloads=None,
 ):
+    payloads = _DEFAULT_WB_PAYLOADS if wb_payloads is None else wb_payloads
+
     def fake_get(url, params=None, headers=None, timeout=None):
         requested_urls.append(url)
+        if "worldbank.org" in url:
+            indicator_code = url.rstrip("/").split("/")[-1]
+            return MockResponse(json_data=payloads[indicator_code])
         if "rplumber.ilo.org" in url:
             return MockResponse(
                 text=ilo_text or "time,obs_value\n2024,38.209\n2023,38.0\n"
@@ -158,7 +178,10 @@ def _mock_requests_get(
                 json_data=imf_json
                 or _imf_payload(
                     {
-                        "G2_T": {2023: 6.121621434173129, 2024: 5.117707506327274},
+                        "G2_T": {
+                            2023: 6.121621434173129,
+                            2024: 5.117707506327274,
+                        },
                         "G24_T": {
                             2023: 0.5526694185117545,
                             2024: 0.5920776865725198,
@@ -207,7 +230,6 @@ def test_get_macro_params_update_from_api_false_returns_empty_dict():
 def test_get_macro_params_update_from_api_true(monkeypatch):
     requested_urls = []
     _mock_statsmodels(monkeypatch)
-    _mock_wb_download(monkeypatch)
     _mock_requests_get(monkeypatch, requested_urls)
 
     test_dict = macro_params.get_macro_params(update_from_api=True)
@@ -235,7 +257,10 @@ def test_get_macro_params_update_from_api_true(monkeypatch):
     assert test_dict["alpha_G"] == [pytest.approx(0.04525629819754754)]
     assert test_dict["r_gov_shift"] == [pytest.approx(-0.03376625043803517)]
     assert test_dict["r_gov_scale"] == [pytest.approx(0.24484763593657818)]
-    assert any(".ETH.S1311B.G2M." in url or "/ETH.S1311B.G2M." in url for url in requested_urls)
+    assert any(
+        ".ETH.S1311B.G2M." in url or "/ETH.S1311B.G2M." in url
+        for url in requested_urls
+    )
 
 
 def test_get_imf_macro_params_uses_eth_budgetary_sector(monkeypatch):
@@ -310,7 +335,6 @@ def test_get_imf_macro_params_falls_back_to_last_available_year(monkeypatch):
 def test_get_macro_params_passes_imf_year_override(monkeypatch):
     requested_urls = []
     _mock_statsmodels(monkeypatch)
-    _mock_wb_download(monkeypatch)
     _mock_requests_get(
         monkeypatch,
         requested_urls,

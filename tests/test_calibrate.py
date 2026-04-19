@@ -92,7 +92,9 @@ class TestOnlinePartialFailure:
             warnings.simplefilter("always")
             c = Calibration(p, update_from_api=True)
 
-        assert any("Macro params update failed" in str(w.message) for w in caught)
+        assert any(
+            "Macro params update failed" in str(w.message) for w in caught
+        )
         d = c.get_dict()
         assert "g_y_annual" not in d
         assert "initial_debt_ratio" not in d

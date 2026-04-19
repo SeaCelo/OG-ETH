@@ -5,13 +5,89 @@ parameters for the OG-ETH model that rely on macro data for calibration.
 """
 
 # imports
-from pandas_datareader import wb
 import pandas as pd
 import numpy as np
 import requests
 import datetime
 from io import StringIO
 from pathlib import Path
+
+
+def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):
+    """
+    Fetch a set of World Bank indicators and return a single DataFrame.
+
+    Args:
+        indicators (dict): mapping of human-readable labels to indicator codes
+        country_iso (str): ISO country code
+        start_year (int): first year to request
+        end_year (int): last year to request
+        source (int): World Bank source ID
+
+    Returns:
+        pandas.DataFrame: DataFrame indexed by year/quarter label
+    """
+    if source == 2:
+        date_range = f"{start_year}:{end_year}"
+    elif source == 20:
+        date_range = f"{start_year}Q1:{end_year}Q4"
+    else:
+        raise ValueError(f"Unsupported World Bank source: {source}")
+
+    data_frames = []
+    for label, indicator_code in indicators.items():
+        response = requests.get(
+            (
+                "https://api.worldbank.org/v2/country/"
+                f"{country_iso}/indicator/{indicator_code}"
+            ),
+            params={
+                "date": date_range,
+                "source": source,
+                "format": "json",
+                "per_page": 10000,
+            },
+        )
+        response.raise_for_status()
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise ValueError(
+                f"Malformed World Bank response for {indicator_code}"
+            ) from exc
+
+        if (
+            not isinstance(payload, list)
+            or len(payload) < 2
+            or not isinstance(payload[1], list)
+            or not payload[1]
+        ):
+            raise ValueError(
+                f"Empty or malformed World Bank response for {indicator_code}"
+            )
+
+        series_data = {}
+        for row in payload[1]:
+            date = row.get("date")
+            if date is None:
+                continue
+            series_data[date] = row.get("value")
+
+        if not series_data:
+            raise ValueError(
+                f"No dated observations in World Bank response for "
+                f"{indicator_code}"
+            )
+
+        series = pd.Series(series_data, name=label)
+        series = pd.to_numeric(series, errors="coerce")
+        data_frames.append(series.to_frame())
+
+    data = pd.concat(data_frames, axis=1)
+    data.index.name = "year"
+    # Preserve descending time order used by the existing pct_change(-1) logic.
+    data = data.sort_index(ascending=False)
+    return data
 
 
 # IMF GFS coverage differs by country. For Ethiopia, the percent-of-GDP
@@ -184,17 +260,13 @@ def get_macro_params(
 
     if update_from_api:
         try:
-            # pull series of interest from the WB using pandas_datareader
-            # Annual data
-            wb_data_a = wb.download(
-                indicator=wb_a_variable_dict.values(),
-                country=country_iso,
-                start=data_start_date,
-                end=data_end_date,
-            )
-            wb_data_a.rename(
-                columns=dict((y, x) for x, y in wb_a_variable_dict.items()),
-                inplace=True,
+            # Pull annual series from the World Bank v2 API
+            wb_data_a = _fetch_wb_data(
+                wb_a_variable_dict,
+                country_iso,
+                data_start_date.year,
+                data_end_date.year,
+                source=2,
             )
 
             # Compute annual GDP growth safely

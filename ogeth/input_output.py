@@ -84,7 +84,9 @@ def get_io_matrix(sam=None, cons_dict=CONS_DICT, prod_dict=PROD_DICT):
     if sam is None:
         sam = read_SAM()
     if sam is None:
-        raise RuntimeError("SAM data is unavailable. Cannot compute io_matrix.")
+        raise RuntimeError(
+            "SAM data is unavailable. Cannot compute io_matrix."
+        )
 
     # Create initial matrix as dataframe of 0's to fill in
     io_dict = {}
