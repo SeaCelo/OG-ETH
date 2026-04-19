@@ -335,9 +335,7 @@ def test_eth_alpha_g_updates_when_imf_fails(monkeypatch):
         requested_urls.append(url)
         if "worldbank.org" in url:
             indicator_code = url.rstrip("/").split("/")[-1]
-            return MockResponse(
-                json_data=_DEFAULT_WB_PAYLOADS[indicator_code]
-            )
+            return MockResponse(json_data=_DEFAULT_WB_PAYLOADS[indicator_code])
         if "rplumber.ilo.org" in url:
             return MockResponse(
                 text="time,obs_value\n2024,38.209\n2023,38.0\n"
