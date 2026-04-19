@@ -189,9 +189,8 @@ def get_macro_params(
     """
     # Dictionaries of variables and their corresponding World Bank codes
     # Annual data
-    wb_a_variable_dict = {
+    wb_growth_variable_dict = {
         "GDP per capita (constant 2015 US$)": "NY.GDP.PCAP.KD",
-        "General government final consumption expenditure (% of GDP)": "NE.CON.GOVT.ZS",
         # "Real GDP (constant 2015 US$)": "NY.GDP.MKTP.KD",
         # "Nominal GDP (current US$)": "NY.GDP.MKTP.CD",
         # "General government final consumption expenditure (current US$)": "NE.CON.GOVT.CD",
@@ -200,9 +199,8 @@ def get_macro_params(
     wb_alpha_g = None
     if update_from_api:
         try:
-            # Pull annual series from the World Bank v2 API
-            wb_data_a = _fetch_wb_data(
-                wb_a_variable_dict,
+            wb_growth_data = _fetch_wb_data(
+                wb_growth_variable_dict,
                 country_iso,
                 data_start_date.year,
                 data_end_date.year,
@@ -210,9 +208,9 @@ def get_macro_params(
             )
 
             # Compute annual GDP growth safely
-            if "GDP per capita (constant 2015 US$)" in wb_data_a.columns:
+            if "GDP per capita (constant 2015 US$)" in wb_growth_data.columns:
                 macro_parameters["g_y_annual"] = _get_world_bank_g_y_annual(
-                    wb_data_a, data_start_date
+                    wb_growth_data, data_start_date
                 )
             else:
                 print(
@@ -222,18 +220,23 @@ def get_macro_params(
             print(
                 f"g_y_annual updated from World Bank API: {macro_parameters['g_y_annual']}"
             )
-            try:
-                wb_alpha_g = _get_world_bank_alpha_g(
-                    wb_data_a, data_end_date.year
-                )
-            except ValueError:
-                wb_alpha_g = None
         except Exception:
             print("Failed to retrieve data from World Bank")
-            print("Will not update the following parameters:")
-            print(
-                "[initial_debt_ratio, initial_foreign_debt_ratio, zeta_D, g_y]"
+            print("Will not update g_y_annual")
+
+        try:
+            wb_alpha_g_data = _fetch_wb_data(
+                {WB_ALPHA_G_SERIES: "NE.CON.GOVT.ZS"},
+                country_iso,
+                data_start_date.year,
+                data_end_date.year,
+                source=2,
             )
+            wb_alpha_g = _get_world_bank_alpha_g(
+                wb_alpha_g_data, data_end_date.year
+            )
+        except Exception:
+            wb_alpha_g = None
     else:
         print("Not updating from World Bank API")
 

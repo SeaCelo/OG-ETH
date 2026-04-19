@@ -117,9 +117,9 @@ def test_get_macro_params_update_from_api_true(monkeypatch):
 
 
 def test_alpha_g_omitted_when_world_bank_returns_empty(monkeypatch):
-    # Simulate the World Bank alpha_G series returning no observations.
-    # Ethiopia does not update alpha_T from any API source, so neither
-    # alpha_T nor alpha_G should end up in the returned dict.
+    # Simulate the World Bank alpha_G series returning no observations
+    # while the GDP-per-capita series is complete. The split fetches keep
+    # g_y_annual intact; alpha_T is not sourced from any API for Ethiopia.
     requested_urls = []
     _mock_requests_get(
         monkeypatch,
@@ -139,4 +139,5 @@ def test_alpha_g_omitted_when_world_bank_returns_empty(monkeypatch):
 
     assert "alpha_T" not in test_dict
     assert "alpha_G" not in test_dict
+    assert test_dict["g_y_annual"] == pytest.approx(0.25)
     assert not any("api.imf.org" in url for url in requested_urls)
