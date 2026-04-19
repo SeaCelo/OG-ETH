@@ -87,26 +87,24 @@ def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):
     return data
 
 
-# For Ethiopia, alpha_G is calibrated from general government final
+# Ethiopia calibrates alpha_G from World Bank general government final
 # consumption expenditure because that better matches the OG-ETH concept of
 # government spending on goods, services, and public goods than the available
 # budgetary central government IMF GFS outlay series.
-WB_ALPHA_G_BY_COUNTRY = {
-    "ETH": "General government final consumption expenditure (% of GDP)"
-}
+WB_ALPHA_G_SERIES = (
+    "General government final consumption expenditure (% of GDP)"
+)
 
 # Ethiopia's default long-run productivity-growth calibration uses the
 # post-2005 growth regime rather than the full World Bank history.
-GDP_GROWTH_START_YEAR_BY_COUNTRY = {"ETH": 2006}
+GDP_GROWTH_START_YEAR = 2006
 
 
-def _get_world_bank_alpha_g(wb_data, country_iso, target_year):
+def _get_world_bank_alpha_g(wb_data, target_year):
     """
-    Return a country-specific alpha_G from World Bank data when the spending
-    concept aligns better with OG-ETH than the available IMF GFS coverage.
+    Return alpha_G from World Bank government consumption data.
     """
-    series_name = WB_ALPHA_G_BY_COUNTRY.get(country_iso.upper())
-    if series_name is None or series_name not in wb_data.columns:
+    if WB_ALPHA_G_SERIES not in wb_data.columns:
         return None
 
     if isinstance(wb_data.index, pd.MultiIndex):
@@ -115,14 +113,14 @@ def _get_world_bank_alpha_g(wb_data, country_iso, target_year):
         years = wb_data.index
 
     alpha_g_series = pd.Series(
-        wb_data[series_name].values,
+        wb_data[WB_ALPHA_G_SERIES].values,
         index=pd.to_numeric(years, errors="coerce"),
     ).dropna()
     alpha_g_series = alpha_g_series[alpha_g_series.index <= int(target_year)]
     if alpha_g_series.empty:
         raise ValueError(
-            "No World Bank government consumption data available for "
-            f"{country_iso} up to {target_year}"
+            "No World Bank government consumption data available up to "
+            f"{target_year}"
         )
 
     selected_year = (
@@ -133,15 +131,15 @@ def _get_world_bank_alpha_g(wb_data, country_iso, target_year):
     value = alpha_g_series.loc[selected_year] / 100
     if selected_year != int(target_year):
         print(
-            f"No World Bank alpha_G data for {country_iso} in {target_year}. "
-            f"Using last available year {selected_year}: alpha_G={value:.4f}"
+            f"No World Bank alpha_G data in {target_year}. Using last "
+            f"available year {selected_year}: alpha_G={value:.4f}"
         )
     return [value]
 
 
-def _get_world_bank_g_y_annual(wb_data, country_iso, data_start_date):
+def _get_world_bank_g_y_annual(wb_data, data_start_date):
     """
-    Compute average GDP-per-capita growth using the country-specific
+    Compute average GDP-per-capita growth using the Ethiopia-specific
     calibration window rather than the full available history.
     """
     series_name = "GDP per capita (constant 2015 US$)"
@@ -155,7 +153,7 @@ def _get_world_bank_g_y_annual(wb_data, country_iso, data_start_date):
 
     growth_start_year = max(
         int(data_start_date.year),
-        GDP_GROWTH_START_YEAR_BY_COUNTRY.get(country_iso.upper(), 0),
+        GDP_GROWTH_START_YEAR,
     )
     gdp_pc_series = pd.Series(
         wb_data[series_name].values,
@@ -214,7 +212,7 @@ def get_macro_params(
             # Compute annual GDP growth safely
             if "GDP per capita (constant 2015 US$)" in wb_data_a.columns:
                 macro_parameters["g_y_annual"] = _get_world_bank_g_y_annual(
-                    wb_data_a, country_iso, data_start_date
+                    wb_data_a, data_start_date
                 )
             else:
                 print(
@@ -226,7 +224,7 @@ def get_macro_params(
             )
             try:
                 wb_alpha_g = _get_world_bank_alpha_g(
-                    wb_data_a, country_iso, data_end_date.year
+                    wb_data_a, data_end_date.year
                 )
             except ValueError:
                 wb_alpha_g = None
@@ -306,15 +304,12 @@ def get_macro_params(
         # consistent ~0.4% of GDP cross-check.
         print("Not updating alpha_T from API for Ethiopia")
 
-        if country_iso.upper() in WB_ALPHA_G_BY_COUNTRY:
-            if wb_alpha_g is not None:
-                macro_parameters["alpha_G"] = wb_alpha_g
-                print(
-                    "alpha_G updated from World Bank government consumption "
-                    f"data: {macro_parameters['alpha_G']}"
-                )
-            else:
-                print("Will not update alpha_G")
+        if wb_alpha_g is not None:
+            macro_parameters["alpha_G"] = wb_alpha_g
+            print(
+                "alpha_G updated from World Bank government consumption "
+                f"data: {macro_parameters['alpha_G']}"
+            )
         else:
             print("Will not update alpha_G")
 
