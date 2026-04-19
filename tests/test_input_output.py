@@ -9,7 +9,6 @@ import pytest
 
 from ogeth import input_output as io
 
-
 HH_COLS = [
     "hhd-r1",
     "hhd-r2",
