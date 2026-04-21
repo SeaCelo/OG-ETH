@@ -38,7 +38,6 @@ setuptools.setup(
         "requests",
         "xlwt",
         "openpyxl>=3.1.2",
-        "statsmodels",
         "linearmodels",
         "wheel",
         "black",

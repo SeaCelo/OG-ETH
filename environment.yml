@@ -27,7 +27,6 @@ dependencies:
 - fsspec
 - aiohttp
 - xlwt
-- statsmodels
 - linearmodels
 - black
 - jupyter

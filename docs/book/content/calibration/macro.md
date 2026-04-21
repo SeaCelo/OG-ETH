@@ -57,6 +57,9 @@ print(r_gov_shift)  # -0.03376625043803517
 print(r_gov_scale)  # 0.24484763593657818
 ```
 
+We store these defaults rounded to five decimal places in the packaged JSON:
+`r_gov_shift = -0.03377` and `r_gov_scale = 0.24485`.
+
 ### Aggregate transfers
 
 Aggregate (non-Social Security) transfers to households are set as a share of GDP with the parameter $\alpha_T$. We exclude Social Security from transfers since it is modeled specifically. In OG-ETH, the relevant concept is government-financed, non-pension transfers paid to households. For Ethiopia, the IMF GFS `S1311B` social-benefits series (`G27_T` and `G271_T`) do not line up well with that concept in the calibration year because they miss the main FY2024/25 government cash contributions to the rural PSNP and urban UPSNP.
