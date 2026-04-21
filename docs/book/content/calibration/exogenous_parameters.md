@@ -60,10 +60,10 @@ kernelspec:
 | $\texttt{use_zeta}$             | Whether to distribute bequests between lifetime income groups           | 0.00E+00                                              |
 | $\zeta$                          | Distribution of bequests                                                | Too large to report here, see default parameters JSON |
 | $Z_{t}$                          | Total factor productivity                                               | Too large to report here, see default parameters JSON |
-| $\gamma$                         | Capital share of income                                                 | [0.401...0.401]                                       |
+| $\gamma$                         | Capital share of income                                                 | [0.618...0.618]                                       |
 | $\varepsilon$                    | Elasticity of substitution between capital and labor                    | [1.000...1.000]                                       |
 | $\delta$                         | Capital depreciation rate                                               | 0.050                                                 |
-| $g_{y}$                          | Growth rate of labor augmenting technological progress                  | 0.00E+00                                              |
+| $g_{y}$                          | Growth rate of labor augmenting technological progress                  | 0.060                                                 |
 | $\texttt{tax_func_type}$       | Functional form used for income tax functions                           | linear                                                |
 | $\texttt{analytical_mtrs}$      | Whether use analytical MTRs or estimate MTRs                            | 0.00E+00                                              |
 | $\texttt{age_specific}$         | Whether use age-specific tax functions                                  | 0.00E+00                                              |
@@ -77,14 +77,14 @@ kernelspec:
 | $P$                              | Coefficient on level term in wealth tax function                        | [0.000...0.000]                                       |
 | $\texttt{budget_balance}$       | Whether have a balanced budget in each period                           | 0.00E+00                                              |
 | $\texttt{baseline_spending}$    | Whether level of spending constant between the baseline and reform runs | 0.00E+00                                              |
-| $\alpha^{T}_{t}$                 | Transfers as a share of GDP                                             | [0.041...0.041]                                       |
+| $\alpha^{T}_{t}$                 | Transfers as a share of GDP                                             | [0.004...0.004]                                       |
 | $\eta_{j,s,t}$                   | Distribution of transfers                                               | Too large to report here, see default parameters JSON |
-| $\alpha^{G}_{t}$                 | Government spending as a share of GDP                                   | [0.267...0.267]                                       |
+| $\alpha^{G}_{t}$                 | Government spending as a share of GDP                                   | [0.055...0.055]                                       |
 | $t_{G1}$                         | Model period in which budget closure rule starts                        | 20                                                    |
 | $t_{G2}$                         | Model period in which budget closure rule ends                          | 256                                                   |
 | $\rho_{G}$                       | Budget closure rule smoothing parameter                                 | 0.100                                                 |
 | $\bar{\alpha}_{D}$               | Steady-state Debt-to-GDP ratio                                          | 1.200                                                 |
-| $\alpha_{D,0}$                   | Initial period Debt-to-GDP ratio                                        | 0.740                                                 |
+| $\alpha_{D,0}$                   | Initial period Debt-to-GDP ratio                                        | 0.327                                                 |
 | $\tau_{d,t}$                     | Scale parameter in government interest rate wedge                       | [0.245...0.245]                                       |
 | $\mu_{d,t}$                      | Shift parameter in government interest rate wedge                       | [-0.034...-0.034]                                     |
 | $\texttt{avg_earn_num_years}$ | Number of years over which compute average earnings for pension benefit | 35                                                    |
@@ -97,9 +97,9 @@ kernelspec:
 | $\texttt{PIA_minpayment}$       | Minimum PIA payment                                                     | 0.00E+00                                              |
 | $\theta_{adj,t}$                 | Adjustment to replacement rate                                          | [1.000...1.000]                                       |
 | $r^{*}_{t}$                      | World interest rate                                                     | [0.040...0.040]                                       |
-| $D_{f,0}$                        | Share of government debt held by foreigners in initial period           | 0.237                                                 |
-| $\zeta_{D, t}$                   | Share of new debt issues purchased by foreigners                        | [0.237...0.237]                                       |
-| $\zeta_{K, t}$                   | Share of excess capital demand satisfied by foreigners                  | [0.900...0.900]                                       |
+| $D_{f,0}$                        | Share of government debt held by foreigners in initial period           | 0.420                                                 |
+| $\zeta_{D, t}$                   | Share of new debt issues purchased by foreigners                        | [0.120...0.120]                                       |
+| $\zeta_{K, t}$                   | Share of excess capital demand satisfied by foreigners                  | [0.650...0.650]                                       |
 | $\xi$                            | Dampening parameter for TPI                                             | 0.400                                                 |
 | $\texttt{maxiter}$               | Maximum number of iterations for TPI                                    | 250                                                   |
 | $\texttt{mindist_SS}$           | SS solution tolerance                                                   | 1.00E-09                                              |
