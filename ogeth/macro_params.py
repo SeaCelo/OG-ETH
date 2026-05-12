@@ -12,9 +12,7 @@ import datetime
 from io import StringIO
 from pathlib import Path
 
-# Output elasticity of installed public capital, used to subtract gamma_g
-# from the ILOSTAT-derived total capital share. See docs firms.md for
-# sources and rationale.
+# IMF DIG public capital elasticity; see firms.md.
 GAMMA_G_LIC = 0.15
 
 
