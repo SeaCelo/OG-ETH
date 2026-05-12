@@ -13,8 +13,8 @@
 | $\sigma$                      | Coefficient of constant relative risk aversion                                                                               | 1.500                                                 |
 | $\alpha_i$                    | Share parameters for each good in the composite consumption good                                                             | [1.000...1.000]                                       |
 | $c_{min,i}$                   | Minimum consumption levels for each good in the composite consumption good                                                   | [0.000...0.000]                                       |
-| $\gamma_m$                    | Capital share of income by industry                                                                                          | [0.618...0.618]                                       |
-| $\gamma_{g,m}$                | Public capital's share of output in firm production function by industry                                                     | [0.000...0.000]                                       |
+| $\gamma_m$                    | Capital share of income by industry                                                                                          | [0.468...0.468]                                       |
+| $\gamma_{g,m}$                | Public capital's share of output in firm production function by industry                                                     | [0.150...0.150]                                       |
 | $\varepsilon_m$               | Elasticity of substitution between capital and labor by industry                                                             | [1.000...1.000]                                       |
 | $\Pi^I$                       | Input-output matrix                                                                                                          | Too large to report here, see default parameters JSON |
 | $Z_{m,t}$                     | Total factor productivity by industry                                                                                        | Too large to report here, see default parameters JSON |
@@ -30,6 +30,7 @@
 | $\alpha^{T}_{t}$              | Transfers as a share of GDP                                                                                                  | [0.050...0.050]                                       |
 | $\alpha^{G}_{t}$              | Government spending as a share of GDP                                                                                        | [0.095...0.095]                                       |
 | $\alpha^{I}_{t}$              | Exogenous fraction of GDP for infrastructure investment                                                                      | [0.000...0.000]                                       |
+| $\phi_g$                      | Infrastructure investment leakage rate                                                                                       | 0.500                                                 |
 | $\alpha^{BS}_{T,t}$           | Proportional adjustment to government transfers relative to baseline amount when budget balance is true                      | [1.000...1.000]                                       |
 | $\alpha^{BS}_{G,t}$           | Proportional adjustment to government consumption expenditures relative to baseline amount when budget balance is true       | [1.000...1.000]                                       |
 | $\alpha^{BS}_{I,t}$           | Proportional adjustment to infrastructure spending relative to baseline amount when budget balance is true                   | [1.000...1.000]                                       |
