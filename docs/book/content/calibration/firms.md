@@ -34,9 +34,9 @@ Labour's share of output for Ethiopia comes from the [UN ILOSTAT database](https
 \gamma_m + \gamma_{g,m} = 0.61791
 ```
 
-We set $\gamma_{g,m} = 0.15$, the headline output elasticity of installed public capital used by the IMF Debt, Investment, and Growth (DIG) model family for the average low-income country {cite}`Buffie:2012`. This value applies to the **installed** public capital stock, not to gross public investment; the gap between investment and installed capital is handled separately by the `infra_investment_leakage_rate` parameter $\phi_g$ (see "Public-investment efficiency" below). The same value (0.15) appears as the "core infrastructure" mean in the meta-analysis of {cite}`BomLigthart:2014` and is the operational standard used in DIG, DIGNAR, and DIGNAD applications for LICs.
+We set $\gamma_{g,m} = 0.15$, the IMF DIG headline output elasticity of installed public capital for the average low-income country {cite}`Buffie:2012`. This applies to the **installed** public capital stock; the gap between gross investment and installed capital is handled by the `infra_investment_leakage_rate` parameter $\phi_g$ (next section).
 
-Cross-checks against the broader empirical literature: {cite}`BomLigthart:2014` report a publication-bias-corrected short-run mean of 0.083 (all public capital) and a long-run mean of 0.122. {cite}`Calderon:2015` report a long-run output elasticity of synthetic infrastructure (transport, power, telecoms) of 0.07-0.10 for developing countries using a dynamic heterogeneous panel and note that the elasticity "does not seem to vary systematically with countries' level of per capita income." Foster and Briceño-Garmendia (2010), drawing on the Africa Infrastructure Country Diagnostic, attribute 0.6 percentage points per year of Ethiopia's per-capita growth to infrastructure. These lower estimates are consistent with the headline 0.15 once public-investment efficiency is accounted for separately: empirically observed K_g already reflects efficiency losses, so coefficients estimated against observed K_g are below 0.15 by roughly the efficiency factor.
+This value sits within the empirical range of 0.07-0.15 reported by {cite}`BomLigthart:2014`, {cite}`Calderon:2015`, and Foster & Briceño-Garmendia (2010). The lower end of that range corresponds to coefficients estimated against observed K_g, which already reflects efficiency losses; pairing the headline 0.15 with $\phi_g = 0.5$ below reconciles the two interpretations.
 
 Given $\gamma_{g,m} = 0.15$ and total capital share 0.61791, private capital share is $\gamma_m = 0.61791 - 0.15 = 0.46791$. Labour's share remains at 0.38209.
 
@@ -51,7 +51,7 @@ K_{g,m,t+1} = (1 - \delta_g)\,K_{g,m,t} + (1 - \phi_g)\,I_{g,m,t}
 
 where $\phi_g$ (`infra_investment_leakage_rate`) is the fraction of public investment lost to leakage. Only $(1 - \phi_g)\,I_g$ enters the public capital stock; the rest is treated as deadweight loss.
 
-We set $\phi_g = 0.5$, matching the IMF DIG calibration of public-investment efficiency $e = 0.5$ for the average low-income country {cite}`Buffie:2012`. This value is grounded in Pritchett (2000) and is the standard assumption in IMF country applications of DIG, DIGNAR, and DIGNAD. Together, $\gamma_{g,m} = 0.15$ and $\phi_g = 0.5$ map OG-ETH's public-capital block onto the IMF DIG framework: $\gamma_{g,m}$ carries the headline elasticity of output with respect to installed public capital, and $\phi_g$ carries the efficiency story separately. This separation lets the model handle institutional or PIM reforms that change efficiency as distinct from changes in the productivity of public capital itself.
+We set $\phi_g = 0.5$, matching the IMF DIG calibration of public-investment efficiency $e = 0.5$ for the average low-income country {cite}`Buffie:2012`. Together with $\gamma_{g,m} = 0.15$, this maps OG-ETH's public-capital block onto the IMF DIG framework: $\gamma_{g,m}$ carries the headline elasticity of output with respect to installed public capital, and $\phi_g$ carries the efficiency story separately.
 
 ### Initial public capital to GDP ratio
 

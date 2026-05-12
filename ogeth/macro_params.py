@@ -12,16 +12,9 @@ import datetime
 from io import StringIO
 from pathlib import Path
 
-# Output elasticity of installed public capital for Ethiopia. Used to split
-# the ILOSTAT-derived total capital share between private (gamma) and public
-# (gamma_g) components. Set to the IMF DIG headline calibration for the
-# average low-income country: Buffie et al. (2012) IMF WP/12/144 use
-# alpha_G = 0.15 paired with a public-investment efficiency of 0.5. In
-# OG-Core, the efficiency is set separately via infra_investment_leakage_rate
-# (phi_g), so gamma_g carries the headline elasticity here. Cross-checks:
-# Bom & Ligthart (2014) core-infrastructure subset mean ~0.15, long-run
-# preferred mean 0.122; Calderon et al. (2015) developing-country panel
-# range 0.07-0.10.
+# Output elasticity of installed public capital, used to subtract gamma_g
+# from the ILOSTAT-derived total capital share. See docs firms.md for
+# sources and rationale.
 GAMMA_G_LIC = 0.15
 
 
