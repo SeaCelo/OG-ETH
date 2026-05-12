@@ -62,9 +62,9 @@ where $\hat{k}_{g,t} \equiv K_{g,t}/Y_t$ and $i_{g,t} \equiv I_{g,t}/Y_t$.  We u
 | 2022 | 6.5 | 0.661 |
 | 2023 | 6.0 | 0.649 |
 | 2024 | 6.0 | 0.639 |
-| 2025 | 6.0 | 0.634 |
+| 2025 | 6.0 | 0.629 |
 
-We round to `initial_Kg_ratio = 0.65`.
+We round to `initial_Kg_ratio = 0.63`.
 
 ### Total factor productivity
 

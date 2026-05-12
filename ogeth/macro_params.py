@@ -375,9 +375,9 @@ def get_macro_params(
     Retrieve labour share data from the United Nations ILOSTAT Data API
     (see https://rshiny.ilo.org/dataexplorer9/?lang=en).
     The series code is SDG_1041_NOC_RT_A (labour income share as a percent
-    of GDP). Total capital share equals 1 - labour share. We then subtract
-    GAMMA_G_LIC to recover private capital share (gamma); the residual
-    public capital share is fixed in 'default_parameters.json' as gamma_g.
+    of GDP). Total capital share equals 1 - labour share. We subtract
+    GAMMA_G_LIC, which matches the gamma_g value in
+    'default_parameters.json', to recover the private capital share gamma.
     If this fails we will not update gamma in 'default_parameters.json'.
     """
     if update_from_api:
