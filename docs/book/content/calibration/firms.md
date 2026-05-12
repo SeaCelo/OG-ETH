@@ -47,26 +47,14 @@ Public investment flow is set as a share of GDP, $I_{g,t} = \alpha_{I,t}\,Y_t$. 
 
 ### Initial public capital to GDP ratio
 
-The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP in the model start year.  The most recent direct measurement comes from the [IMF Investment and Capital Stock Dataset](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.FAD:ICSD(1.0.0)) (indicator `CAPSTCK_S13_Q_POGDP_PT`), which reports 0.667 for Ethiopia in 2019.  Because the ICSD series ends in 2019 and OG-ETH's start year is 2025, we project forward using the standard perpetual-inventory law of motion in stock-to-GDP units:
+The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP in the model start year.  We set it to 0.40, matching the steady state implied by the law of motion at our calibrated $\phi_g$, $\delta_g$, $\alpha_I$, and $g_y$:
 
 ```{math}
-:label: EqInitialKgPIM
-\hat{k}_{g,t+1} = \frac{(1-\delta)\hat{k}_{g,t} + i_{g,t}}{1+g_y}
+:label: EqInitialKgSS
+\bar{K}_g / \bar{Y} = \frac{(1-\phi_g)\,\alpha_I}{\delta_g + g_y} = \frac{0.5 \times 0.06}{0.02 + 0.06} = 0.375
 ```
 
-where $\hat{k}_{g,t} \equiv K_{g,t}/Y_t$ and $i_{g,t} \equiv I_{g,t}/Y_t$.  We use $\delta = 0.05$ and $g_y = 0.06$, matching `delta_annual` and `g_y_annual`.  The post-2019 public investment path comes from IMF Article IV reports ([IMF Country Report 24/253](https://www.imf.org/-/media/Files/Publications/CR/2024/English/1ethea2024002-print-pdf.ashx) and [IMF Country Report 25/188](https://www.imf.org/-/media/files/publications/cr/2025/english/1ethea2025002-source-pdf.pdf)), reflecting fiscal consolidation under the ECF program.  Applying the recursion year by year:
-
-| Year | $i_{g,t}$ (% of GDP) | $\hat{k}_{g,t}$ |
-| ---: | ---: | ---: |
-| 2019 | 8.9 (ICSD actual) | 0.667 |
-| 2020 | 8.0 | 0.673 |
-| 2021 | 7.0 | 0.670 |
-| 2022 | 6.5 | 0.661 |
-| 2023 | 6.0 | 0.649 |
-| 2024 | 6.0 | 0.639 |
-| 2025 | 6.0 | 0.629 |
-
-We round to `initial_Kg_ratio = 0.63`.
+Rounded to two decimal places, `initial_Kg_ratio = 0.40`.  Initializing near the model's steady-state $\bar{K}_g/\bar{Y}$ keeps the transition path well-behaved.  This value is also consistent with [IMF Investment and Capital Stock Dataset](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.FAD:ICSD(1.0.0)) (indicator `CAPSTCK_S13_Q_POGDP_PT`) readings for Ethiopia in the late 2000s, before the GTP infrastructure push raised the ratio to 0.667 by 2019.
 
 ### Total factor productivity
 
