@@ -52,7 +52,19 @@ The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP i
 \hat{k}_{g,t+1} = \frac{(1-\delta)\hat{k}_{g,t} + i_{g,t}}{1+g_y}
 ```
 
-where $\hat{k}_{g,t} \equiv K_{g,t}/Y_t$ and $i_{g,t} \equiv I_{g,t}/Y_t$.  We use $\delta = 0.05$ and $g_y = 0.06$, matching `delta_annual` and `g_y_annual`.  The post-2019 public investment path comes from IMF Article IV reports ([IMF Country Report 24/253](https://www.imf.org/-/media/Files/Publications/CR/2024/English/1ethea2024002-print-pdf.ashx) and [IMF Country Report 25/188](https://www.imf.org/-/media/files/publications/cr/2025/english/1ethea2025002-source-pdf.pdf)), tapering from 8.0% in 2020 to 6.0% in 2025 under the ECF fiscal consolidation.  Applying the recursion gives $\hat{k}_{g,2025} \approx 0.634$, which we round to `initial_Kg_ratio = 0.65`.
+where $\hat{k}_{g,t} \equiv K_{g,t}/Y_t$ and $i_{g,t} \equiv I_{g,t}/Y_t$.  We use $\delta = 0.05$ and $g_y = 0.06$, matching `delta_annual` and `g_y_annual`.  The post-2019 public investment path comes from IMF Article IV reports ([IMF Country Report 24/253](https://www.imf.org/-/media/Files/Publications/CR/2024/English/1ethea2024002-print-pdf.ashx) and [IMF Country Report 25/188](https://www.imf.org/-/media/files/publications/cr/2025/english/1ethea2025002-source-pdf.pdf)), reflecting fiscal consolidation under the ECF program.  Applying the recursion year by year:
+
+| Year | $i_{g,t}$ (% of GDP) | $\hat{k}_{g,t}$ |
+| ---: | ---: | ---: |
+| 2019 | 8.9 (ICSD actual) | 0.667 |
+| 2020 | 8.0 | 0.673 |
+| 2021 | 7.0 | 0.670 |
+| 2022 | 6.5 | 0.661 |
+| 2023 | 6.0 | 0.649 |
+| 2024 | 6.0 | 0.639 |
+| 2025 | 6.0 | 0.634 |
+
+We round to `initial_Kg_ratio = 0.65`.
 
 ### Total factor productivity
 
