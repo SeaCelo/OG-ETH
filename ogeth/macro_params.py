@@ -12,6 +12,18 @@ import datetime
 from io import StringIO
 from pathlib import Path
 
+# Output elasticity of public capital for Ethiopia. Used to split the
+# ILOSTAT-derived total capital share between private (gamma) and public
+# (gamma_g) components. Anchored to the efficiency-adjusted IMF DIG
+# calibration for the average low-income country: Buffie et al. (2012)
+# IMF WP/12/144 set alpha_G = 0.15 and public-investment efficiency = 0.5,
+# implying an effective output elasticity of installed public capital of
+# 0.075. OG-Core has no separate efficiency parameter, so we use this
+# efficiency-adjusted value directly. Cross-checks: Bom & Ligthart (2014)
+# preferred short-run mean 0.083, Calderon et al. (2015) developing-country
+# panel range 0.07-0.10.
+GAMMA_G_LIC = 0.08
+
 
 def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):
     """
@@ -370,10 +382,12 @@ def get_macro_params(
 
     """
     Retrieve labour share data from the United Nations ILOSTAT Data API
-    (see https://rshiny.ilo.org/dataexplorer9/?lang=en)
-    The series code is SDG_1041_NOC_RT_A (capital share)
-    Labor share (gamma) = 1 - capital share
-    If this fails we will not update gamma in 'default_parameters.json'
+    (see https://rshiny.ilo.org/dataexplorer9/?lang=en).
+    The series code is SDG_1041_NOC_RT_A (labour income share as a percent
+    of GDP). Total capital share equals 1 - labour share. We then subtract
+    GAMMA_G_LIC to recover private capital share (gamma); the residual
+    public capital share is fixed in 'default_parameters.json' as gamma_g.
+    If this fails we will not update gamma in 'default_parameters.json'.
     """
     if update_from_api:
         try:
@@ -402,18 +416,15 @@ def get_macro_params(
             csv_content = StringIO(response.text)
             df_temp = pd.read_csv(csv_content)
             ilo_data = df_temp[["time", "obs_value"]]
-            # find gamma, capital's share of income
-            macro_parameters["gamma"] = [
-                1
-                - (
-                    (
-                        ilo_data.loc[
-                            ilo_data["time"] == data_end_date.year, "obs_value"
-                        ].squeeze()
-                    )
-                    / 100
-                )
-            ]
+            # find gamma (private capital share) by subtracting GAMMA_G_LIC
+            # from the ILOSTAT-derived total capital share.
+            labor_share = (
+                ilo_data.loc[
+                    ilo_data["time"] == data_end_date.year, "obs_value"
+                ].squeeze()
+                / 100
+            )
+            macro_parameters["gamma"] = [1 - labor_share - GAMMA_G_LIC]
             print(
                 f"gamma updated from ILOSTAT API: {macro_parameters['gamma']}"
             )
