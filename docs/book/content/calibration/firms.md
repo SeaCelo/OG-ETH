@@ -43,6 +43,8 @@ K_{g,m,t+1} = (1 - \delta_g)\,K_{g,m,t} + (1 - \phi_g)\,I_{g,m,t}
 
 where $\delta_g$ is the depreciation rate of public capital (the `delta_g_annual` parameter) and $\phi_g$ (`infra_investment_leakage_rate`) is the fraction of public investment lost to leakage.  We set $\phi_g = 0.5$, matching the IMF DIG calibration of public-investment efficiency $e = 0.5$ for the average low-income country {cite}`Buffie:2012`.
 
+Public investment flow is set as a share of GDP, $I_{g,t} = \alpha_{I,t}\,Y_t$.  We set `alpha_I = 0.06`, matching Ethiopia's projected 2025 public investment rate from the same ECF program path used for `initial_Kg_ratio` below.
+
 ### Initial public capital to GDP ratio
 
 The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP in the model start year.  The most recent direct measurement comes from the [IMF Investment and Capital Stock Dataset](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.FAD:ICSD(1.0.0)) (indicator `CAPSTCK_S13_Q_POGDP_PT`), which reports 0.667 for Ethiopia in 2019.  Because the ICSD series ends in 2019 and OG-ETH's start year is 2025, we project forward using the standard perpetual-inventory law of motion in stock-to-GDP units:
