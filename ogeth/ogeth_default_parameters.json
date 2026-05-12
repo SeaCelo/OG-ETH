@@ -754,10 +754,10 @@
         1.0
     ],
     "gamma": [
-        0.53791
+        0.46791
     ],
     "gamma_g": [
-        0.08
+        0.15
     ],
     "epsilon": [
         1.0
@@ -1195,6 +1195,7 @@
     "alpha_I": [
         0.0
     ],
+    "infra_investment_leakage_rate": 0.5,
     "alpha_bs_T": [
         1.0
     ],
