@@ -30,7 +30,7 @@ The production function is given as:
 
 Labour's share of output for Ethiopia comes from the [UN ILOSTAT database](https://rshiny.ilo.org/dataexplorer41/?lang=en&segment=indicator&id=SDG_1041_NOC_RT_A), SDG indicator 10.4.1 (series code `SDG_1041_NOC_RT_A`).  The most recent value is 0.38209, so total capital's share of output is $1 - 0.38209 = 0.61791$.  We split this between private capital $\gamma_m$ and public capital $\gamma_{g,m}$, with $\gamma_m + \gamma_{g,m} = 0.61791$.
 
-We set $\gamma_{g,m} = 0.15$, the IMF DIG headline output elasticity of installed public capital for the average low-income country {cite}`Buffie:2012`.  This sits within the empirical range of 0.07 to 0.15 reported by {cite}`BomLigthart:2014` and {cite}`Calderon:2015`.  Private capital share is then $\gamma_m = 0.46791$.
+We set $\gamma_{g,m} = 0.15$, the IMF DIG headline output elasticity of installed public capital for the average low-income country {cite}`Buffie:2012`.  This is consistent with the empirical literature: {cite}`Calderon:2015` report 0.07 to 0.10 for developing-country synthetic infrastructure, and {cite}`BomLigthart:2014` report 0.08 (short run) to 0.16 (core infrastructure) across specifications.  Private capital share is then $\gamma_m = 0.46791$.
 
 ### Public-investment efficiency
 
@@ -41,7 +41,7 @@ OG-Core's law of motion for public capital is
 K_{g,m,t+1} = (1 - \delta_g)\,K_{g,m,t} + (1 - \phi_g)\,I_{g,m,t}
 ```
 
-where $\phi_g$ (`infra_investment_leakage_rate`) is the fraction of public investment lost to leakage.  We set $\phi_g = 0.5$, matching the IMF DIG calibration of public-investment efficiency $e = 0.5$ for the average low-income country {cite}`Buffie:2012`.
+where $\delta_g$ is the depreciation rate of public capital (the `delta_g_annual` parameter) and $\phi_g$ (`infra_investment_leakage_rate`) is the fraction of public investment lost to leakage.  We set $\phi_g = 0.5$, matching the IMF DIG calibration of public-investment efficiency $e = 0.5$ for the average low-income country {cite}`Buffie:2012`.
 
 ### Initial public capital to GDP ratio
 
@@ -52,7 +52,7 @@ The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP i
 \hat{k}_{g,t+1} = \frac{(1-\delta)\hat{k}_{g,t} + i_{g,t}}{1+g_y}
 ```
 
-where $\hat{k}_{g,t} \equiv K_{g,t}/Y_t$ and $i_{g,t} \equiv I_{g,t}/Y_t$.  We use $\delta = 0.05$ and $g_y = 0.06$, matching `delta_annual` and `g_y_annual`.  The post-2019 public investment path comes from IMF Article IV reports ([IMF Country Report 24/253](https://www.imf.org/-/media/Files/Publications/CR/2024/English/1ethea2024002-print-pdf.ashx) and [IMF Country Report 25/188](https://www.imf.org/-/media/files/publications/cr/2025/english/1ethea2025002-source-pdf.pdf)), reflecting fiscal consolidation under the ECF program.  Applying the recursion year by year:
+where $\hat{k}_{g,t} \equiv K_{g,t}/Y_t$ and $i_{g,t} \equiv I_{g,t}/Y_t$.  We use $\delta = 0.05$ and $g_y = 0.06$, giving $\delta + g_y = 0.11$, which matches the implied year-on-year transition rate in the ICSD series over 2010-2019.  The post-2019 public investment path comes from IMF Article IV reports ([IMF Country Report 24/253](https://www.imf.org/-/media/Files/Publications/CR/2024/English/1ethea2024002-print-pdf.ashx) and [IMF Country Report 25/188](https://www.imf.org/-/media/files/publications/cr/2025/english/1ethea2025002-source-pdf.pdf)), reflecting fiscal consolidation under the ECF program.  Applying the recursion year by year:
 
 | Year | $i_{g,t}$ (% of GDP) | $\hat{k}_{g,t}$ |
 | ---: | ---: | ---: |
