@@ -22,7 +22,7 @@
 | $\delta_{g,ann}$              | Annual rate of economic depreciation of public capital                                                                       | 0.020                                                 |
 | $\tilde{l}$                   | Maximum hours of labor supply                                                                                                | 1.000                                                 |
 | $r^*_t$                       | Exogenous annual world interest rate                                                                                         | [0.040...0.040]                                       |
-| $D_{f,0}$                     | Share of government debt held by foreigners in initial period                                                                | 0.420                                                 |
+| $D_{f,0}$                     | Share of government debt held by foreigners in initial period                                                                | 0.150                                                 |
 | $\zeta_{D,t}$                 | Share of new debt issues purchased by foreigners                                                                             | [0.120...0.120]                                       |
 | $\zeta_{K,t}$                 | Share of excess capital demand satisfied by foreigners                                                                       | [0.200...0.200]                                       |
 | $T_{G1}$                      | Model period in which budget closure rule starts                                                                             | 20                                                    |
