@@ -38,7 +38,7 @@
 | $\alpha_{RM,1}$               | Remittances as a share of GDP in initial period                                                                              | 0.00E+00                                              |
 | $\alpha_{RM,T}$               | Remittances as a share of GDP in long run                                                                                    | 0.00E+00                                              |
 | $g_{RM,t}$                    | Growth rate of remittances in initial periods                                                                                | [0.000...0.000]                                       |
-| $\bar{\alpha}_{D}$            | Steady-state Debt-to-GDP ratio                                                                                               | 0.600                                                 |
+| $\bar{\alpha}_{D}$            | Steady-state Debt-to-GDP ratio                                                                                               | 0.400                                                 |
 | $\alpha_{D,0}$                | Initial period Debt-to-GDP ratio                                                                                             | 0.327                                                 |
 | $\tau_{d,t}$                  | Scale parameter in government interest rate wedge                                                                            | [0.245...0.245]                                       |
 | $\mu_{d,t}$                   | Shift parameter in government interest rate wedge                                                                            | [-0.034...-0.034]                                     |
