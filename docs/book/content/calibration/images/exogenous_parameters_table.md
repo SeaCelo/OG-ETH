@@ -13,8 +13,8 @@
 | $\sigma$                      | Coefficient of constant relative risk aversion                                                                               | 1.500                                                 |
 | $\alpha_i$                    | Share parameters for each good in the composite consumption good                                                             | [1.000...1.000]                                       |
 | $c_{min,i}$                   | Minimum consumption levels for each good in the composite consumption good                                                   | [0.000...0.000]                                       |
-| $\gamma_m$                    | Capital share of income by industry                                                                                          | [0.468...0.468]                                       |
-| $\gamma_{g,m}$                | Public capital's share of output in firm production function by industry                                                     | [0.150...0.150]                                       |
+| $\gamma_m$                    | Capital share of income by industry                                                                                          | [0.518...0.518]                                       |
+| $\gamma_{g,m}$                | Public capital's share of output in firm production function by industry                                                     | [0.100...0.100]                                       |
 | $\varepsilon_m$               | Elasticity of substitution between capital and labor by industry                                                             | [1.000...1.000]                                       |
 | $\Pi^I$                       | Input-output matrix                                                                                                          | Too large to report here, see default parameters JSON |
 | $Z_{m,t}$                     | Total factor productivity by industry                                                                                        | Too large to report here, see default parameters JSON |

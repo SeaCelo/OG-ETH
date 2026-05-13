@@ -12,8 +12,8 @@ import datetime
 from io import StringIO
 from pathlib import Path
 
-# IMF DIG public capital elasticity; see firms.md.
-GAMMA_G_LIC = 0.15
+# Public capital elasticity; see firms.md.
+GAMMA_G_LIC = 0.1
 
 
 def _fetch_wb_data(indicators, country_iso, start_year, end_year, source):

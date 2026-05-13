@@ -30,7 +30,7 @@ The production function is given as:
 
 Labour's share of output for Ethiopia comes from the [UN ILOSTAT database](https://rshiny.ilo.org/dataexplorer41/?lang=en&segment=indicator&id=SDG_1041_NOC_RT_A), SDG indicator 10.4.1 (series code `SDG_1041_NOC_RT_A`).  The most recent value is 0.38209, so total capital's share of output is $1 - 0.38209 = 0.61791$.  We split this between private capital $\gamma_m$ and public capital $\gamma_{g,m}$, with $\gamma_m + \gamma_{g,m} = 0.61791$.
 
-We set $\gamma_{g,m} = 0.15$, the IMF DIG headline output elasticity of installed public capital for the average low-income country {cite}`Buffie:2012`.  This sits within the empirical range of 0.07 to 0.15 reported by {cite}`BomLigthart:2014` and {cite}`Calderon:2015`.  Private capital share is then $\gamma_m = 0.46791$.
+We set $\gamma_{g,m} = 0.10$, within the empirical range of 0.07 to 0.15 reported by {cite}`Buffie:2012`, {cite}`BomLigthart:2014`, and {cite}`Calderon:2015`.  Private capital share is then $\gamma_m = 0.51791$.
 
 ### Public-investment efficiency
 
