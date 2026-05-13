@@ -9,7 +9,7 @@ As the default rate of labor augmenting technological change, $g_y$, we use a va
 
 ### Foreign holding of government debt in the initial period
 
-The path of foreign holding of domestic debt is endogenous, but the initial period stock of debt held by foreign investors is exogenous.  We set this parameter, `initial_foreign_debt_ratio` to 0.95, consistent with [this report from the Ministry of Finance](https://www.mofed.gov.et/media/filer_public/9b/92/9b9264db-1a2b-4cd5-aa7d-f0307d67b4ce/public_sector_debt_statistical_bulletin_no_50.pdf).
+The path of foreign holding of domestic debt is endogenous, but the initial period stock of debt held by foreign investors is exogenous.  We set `initial_foreign_debt_ratio = 0.15`.  The empirical foreign share of Ethiopia's public debt stock at 30/06/2024 is 0.42 (external debt of USD 28,795 million against total public debt of USD 68,080 million per [MoFED Public Sector Debt Statistical Bulletin No. 50](https://www.mofed.gov.et/media/filer_public/9b/92/9b9264db-1a2b-4cd5-aa7d-f0307d67b4ce/public_sector_debt_statistical_bulletin_no_50.pdf), Table 25).  However, recent net new debt issuance has been overwhelmingly domestic: between 2020/21 and 2023/24, external debt was flat-to-down while domestic debt grew by USD 13 billion, implying a foreign share of net new debt near zero.  We set `initial_foreign_debt_ratio` close to $\zeta_D$ rather than to the historical stock share to avoid a large stock-flow discontinuity at $t=0$ that destabilises the transition path; the model can then converge cleanly while still reflecting Ethiopia's structural shift away from external financing.
 
 ### Foreign purchases of newly issued debt
 
