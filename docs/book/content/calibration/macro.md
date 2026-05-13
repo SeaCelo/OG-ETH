@@ -29,6 +29,8 @@ We set $\zeta_K = 0.20$, reflecting Ethiopia's restrictive capital account.  The
 
 The path of government debt is endogenous. But the initial value and the steady-state (long-run) value are exogenous. To avoid converting between model units and dollars, we calibrate the initial debt to GDP ratio, rather than the dollar value of the debt. This is the model parameter $\alpha_D$ and the parameter name in [`ogeth_default_parameters.json`](https://github.com/EAPD-DRB/OG-ETH/blob/main/ogeth/ogeth_default_parameters.json) is `initial_debt_ratio`.  We compute this from the ratio of publicly held debt outstanding to GDP. Based on the 2019 value reported by the World Bank, the initial debt-to-GDP ratio in Ethiopia is 0.314.[^macro_wb_DY]
 
+The steady-state debt-to-GDP ratio is set as `debt_ratio_ss = 0.40`.  This anchors the long-run debt level to the [IMF ECF program medium-term fiscal framework](https://www.imf.org/en/Publications/CR/Issues/2024/07/29/The-Federal-Democratic-Republic-of-Ethiopia-Request-for-an-Arrangement-Under-the-Extended-552556), which targets a moderate rise from the 32.9 percent level reported in the [MoFED Public Sector Debt Statistical Bulletin No. 50](https://www.mofed.gov.et/media/filer_public/9b/92/9b9264db-1a2b-4cd5-aa7d-f0307d67b4ce/public_sector_debt_statistical_bulletin_no_50.pdf) for 30 June 2024.  The value sits well below the 55 percent threshold at which low-income countries are classified as at high risk of debt distress under the IMF/World Bank Debt Sustainability Framework.
+
 
 #### Interest rates on government debt
 
