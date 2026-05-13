@@ -17,7 +17,7 @@ We set $\zeta_D = 0.95$, the same as initial holdings of government debt by fore
 
 ### Foreign holdings of excess capital
 
-We set $\zeta_K = 0.95$. Note, this parameter is harder to pin down from the data as foreign purchases on "excess" capital demand is not typically directly measured or reported.  A value of 0.95 implies a high degree of openness to international capital flows.
+We set $\zeta_K = 0.20$, reflecting Ethiopia's restrictive capital account.  The [Chinn-Ito KAOPEN index](https://web.pdx.edu/~ito/Chinn-Ito_website.htm) of de jure capital openness reads 0.162 for Ethiopia in 2021, compared with a world average near 0.55.  IMF AREAER documents NBE controls on foreign currency outflows and no resident access to international portfolio markets, while the [UNCTAD World Investment Report](https://unctad.org/system/files/official-document/wir2024_en.pdf) records FDI inflows averaging 2–3 percent of GDP over 2018–2024.  We set $\zeta_K$ slightly above the de jure KAOPEN reading to allow for the 2024 banking and foreign exchange market liberalization.
 
 ## Government Debt, Spending and Transfers
 

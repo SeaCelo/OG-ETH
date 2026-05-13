@@ -43,11 +43,17 @@ K_{g,m,t+1} = (1 - \delta_g)\,K_{g,m,t} + (1 - \phi_g)\,I_{g,m,t}
 
 where $\delta_g$ is the depreciation rate of public capital (the `delta_g_annual` parameter) and $\phi_g$ (`infra_investment_leakage_rate`) is the fraction of public investment lost to leakage.  We set $\phi_g = 0.5$, matching the IMF DIG calibration of public-investment efficiency $e = 0.5$ for the average low-income country {cite}`Buffie:2012`.
 
-Public investment flow is set as a share of GDP, $I_{g,t} = \alpha_{I,t}\,Y_t$.  We set `alpha_I = 0.06`, matching Ethiopia's projected 2025 public investment rate from the same ECF program path used for `initial_Kg_ratio` below.
+Public investment flow is set as a share of GDP, $I_{g,t} = \alpha_{I,t}\,Y_t$.  We calibrate `alpha_I` as a five-year linear path from the most recent actual to the IMF ECF program's medium-term target, then hold constant:
+
+| $t$            | 0     | 1     | 2     | 3     | $\geq 4$ |
+|:---------------|:-----:|:-----:|:-----:|:-----:|:--------:|
+| $\alpha_{I,t}$ | 0.040 | 0.045 | 0.050 | 0.055 | 0.060    |
+
+The $t = 0$ value comes from the [NBE Annual Report 2023/24](https://nbe.gov.et/wp-content/uploads/2025/06/Annual-Report-2023-2024.pdf), Section 3.5: general government capital expenditure was 467,457.6 million Birr against total expenditure of 1,120,077.3 million Birr, where total expenditure was 9.5% of GDP, giving $\alpha_I = (467{,}457.6 / 1{,}120{,}077.3) \times 0.095 = 0.0396$.  The $t \geq 4$ value of 0.060 matches the [IMF ECF program medium-term fiscal framework](https://www.imf.org/en/Publications/CR/Issues/2024/07/29/The-Federal-Democratic-Republic-of-Ethiopia-Request-for-an-Arrangement-Under-the-Extended-552556) and the five-year backward average prior to the recent fiscal consolidation.
 
 ### Initial public capital to GDP ratio
 
-The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP in the model start year.  We set it to 0.40, matching the steady state implied by the law of motion at our calibrated $\phi_g$, $\delta_g$, $\alpha_I$, and $g_y$:
+The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP in the model start year.  We set it to 0.40, matching the steady state implied by the law of motion at our calibrated $\phi_g$, $\delta_g$, $g_y$, and the long-run $\alpha_I = 0.060$:
 
 ```{math}
 :label: EqInitialKgSS
