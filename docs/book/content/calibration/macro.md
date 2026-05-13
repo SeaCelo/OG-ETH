@@ -43,9 +43,7 @@ Aggregate (non-Social Security) transfers to households are set as a share of GD
 
 ### Government expenditures
 
-Government spending on goods and services are also set as a share of GDP with the parameter $\alpha_G$. We define government spending as:
-    <center>Government Spending = Total Outlays - Transfers - Net Interest on Debt - Social Security</center>
-With this definition, the share of government expenditure to GDP is 0.095 based on [data from the IMF](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.RES:WEO(9.0.0)&INDICATOR=GGX).
+Government consumption is set as a share of GDP with the parameter $\alpha_G$. We use the World Bank series [General government final consumption expenditure (% of GDP)](https://data.worldbank.org/indicator/NE.CON.GOVT.ZS?locations=ET) (`NE.CON.GOVT.ZS`), which captures current spending on goods and services and excludes capital outlays. Public infrastructure investment is calibrated separately via $\alpha_I$ (see the firm calibration), so the two parameters do not overlap. Setting $\alpha_G = 0.055$ corresponds to the recent value for Ethiopia.
 
 
 (SecLWI_footnotes)=

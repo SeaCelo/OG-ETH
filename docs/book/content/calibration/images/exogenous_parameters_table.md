@@ -28,7 +28,7 @@
 | $T_{G1}$                      | Model period in which budget closure rule starts                                                                             | 20                                                    |
 | $T_{G2}$                      | Model period in which budget closure rule ends                                                                               | 256                                                   |
 | $\alpha^{T}_{t}$              | Transfers as a share of GDP                                                                                                  | [0.050...0.050]                                       |
-| $\alpha^{G}_{t}$              | Government spending as a share of GDP                                                                                        | [0.095...0.095]                                       |
+| $\alpha^{G}_{t}$              | Government spending as a share of GDP                                                                                        | [0.055...0.055]                                       |
 | $\alpha^{I}_{t}$              | Exogenous fraction of GDP for infrastructure investment                                                                      | [0.060...0.060]                                       |
 | $\phi_g$                      | Infrastructure investment leakage rate                                                                                       | 0.500                                                 |
 | $\alpha^{BS}_{T,t}$           | Proportional adjustment to government transfers relative to baseline amount when budget balance is true                      | [1.000...1.000]                                       |
