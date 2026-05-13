@@ -53,14 +53,14 @@ The $t = 0$ value comes from the [NBE Annual Report 2023/24](https://nbe.gov.et/
 
 ### Initial public capital to GDP ratio
 
-The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP in the model start year.  We set it to 0.40, matching the steady state implied by the law of motion at our calibrated $\phi_g$, $\delta_g$, $g_y$, and the long-run $\alpha_I = 0.060$:
+The parameter `initial_Kg_ratio` sets the ratio of public capital stock to GDP in the model start year.  We set it to 0.35, matching the steady state implied by the law of motion at our calibrated $\phi_g$, $\delta_g$, $g_y$, and the long-run $\alpha_I = 0.060$:
 
 ```{math}
 :label: EqInitialKgSS
 \bar{K}_g / \bar{Y} = \frac{(1-\phi_g)\,\alpha_I}{\delta_g + g_y} = \frac{0.5 \times 0.06}{0.02 + 0.06} = 0.375
 ```
 
-Rounded to two decimal places, `initial_Kg_ratio = 0.40`.  Initializing near the model's steady-state $\bar{K}_g/\bar{Y}$ keeps the transition path well-behaved.  This value is also consistent with [IMF Investment and Capital Stock Dataset](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.FAD:ICSD(1.0.0)) (indicator `CAPSTCK_S13_Q_POGDP_PT`) readings for Ethiopia in the late 2000s, before the GTP infrastructure push raised the ratio to 0.667 by 2019.
+The model's numerical steady state under our full calibration is 0.347, so `initial_Kg_ratio = 0.35` closely matches the realized SS K_g/Y and keeps the t=0 stock-flow gap minimal.  This value is consistent with [IMF Investment and Capital Stock Dataset](https://data.imf.org/en/Data-Explorer?datasetUrn=IMF.FAD:ICSD(1.0.0)) (indicator `CAPSTCK_S13_Q_POGDP_PT`) readings for Ethiopia in the late 2000s, before the GTP infrastructure push raised the ratio to 0.667 by 2019.
 
 ### Total factor productivity
 
