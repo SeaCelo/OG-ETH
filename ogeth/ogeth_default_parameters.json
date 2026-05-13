@@ -1217,7 +1217,7 @@
     ],
     "debt_ratio_ss": 0.4,
     "initial_debt_ratio": 0.327,
-    "initial_Kg_ratio": 0.4,
+    "initial_Kg_ratio": 0.35,
     "r_gov_scale": [
         0.24484763593657818
     ],
