@@ -31,6 +31,7 @@ REPOS=(
 # ── Defaults ──────────────────────────────────────────────────────────────────
 REPO_KEY=""
 REPO_URL=""
+BRANCH=""
 DEST=""
 ASSUME_YES=0
 SKIP_UV_INSTALL=0
@@ -49,6 +50,8 @@ Options:
   -y, --yes               Auto-confirm every prompt (non-interactive).
       --repo KEY          Skip menu; one of: og-core, og-eth
       --repo-url URL      Use a custom Git URL. Bypasses the menu.
+      --branch BRANCH     Clone a specific branch (default: repo's default branch).
+                          Useful for testing forks/PRs before they merge.
       --dest DIR          Where to clone (default: ./\${REPO_NAME}).
       --no-dev-deps       Install runtime deps only (skip dev/test tooling).
       --skip-uv-install   Don't install uv; assume it's already on PATH.
@@ -59,6 +62,7 @@ Examples:
   $0 --repo og-eth                          # menu skipped; prompt for dest
   $0 --repo og-eth --dest ~/work/og-eth --yes
   $0 --repo-url git@github.com:me/OG-USA.git --dest ./og-usa
+  $0 --repo-url https://github.com/me/OG-ETH.git --branch feat/uv-migration --dest /tmp/test
 EOF
 }
 
@@ -71,6 +75,8 @@ while [ $# -gt 0 ]; do
         --repo=*) REPO_KEY="${1#*=}"; shift;;
         --repo-url) REPO_URL="$2"; shift 2;;
         --repo-url=*) REPO_URL="${1#*=}"; shift;;
+        --branch) BRANCH="$2"; shift 2;;
+        --branch=*) BRANCH="${1#*=}"; shift;;
         --dest) DEST="$2"; shift 2;;
         --dest=*) DEST="${1#*=}"; shift;;
         --no-dev-deps) WITH_DEV_DEPS=0; shift;;
@@ -324,6 +330,7 @@ printf "  Platform     : %s %s\n" "$OS_NAME" "$(uname -m)"
 printf "  Model        : %s\n" "$REPO_NAME"
 printf "  Description  : %s\n" "$REPO_DESC"
 printf "  Source       : %s\n" "$REPO_URL"
+[ -n "$BRANCH" ] && printf "  Branch       : %s\n" "$BRANCH"
 printf "  Destination  : %s\n" "$DEST_ABS"
 printf "  Package      : %s\n" "$PKG_NAME"
 printf "  Dev/test deps: %s\n" "$([ "$WITH_DEV_DEPS" = 1 ] && echo yes || echo no)"
@@ -435,11 +442,20 @@ if [ "$DEST_HAS_REPO" = 1 ]; then
         record_step "Clone" SKIP "existing clone used as-is ($branch)"
     fi
 else
-    printf "  Will clone %s into %s.\n" "$REPO_URL" "$DEST_ABS"
+    if [ -n "$BRANCH" ]; then
+        printf "  Will clone %s (branch: %s) into %s.\n" "$REPO_URL" "$BRANCH" "$DEST_ABS"
+    else
+        printf "  Will clone %s into %s.\n" "$REPO_URL" "$DEST_ABS"
+    fi
     echo
     if prompt_yn "Clone now?" y; then
-        echo_cmd "git clone $REPO_URL $DEST_ABS"
-        "$GIT_BIN" clone "$REPO_URL" "$DEST_ABS"
+        if [ -n "$BRANCH" ]; then
+            echo_cmd "git clone --branch $BRANCH $REPO_URL $DEST_ABS"
+            "$GIT_BIN" clone --branch "$BRANCH" "$REPO_URL" "$DEST_ABS"
+        else
+            echo_cmd "git clone $REPO_URL $DEST_ABS"
+            "$GIT_BIN" clone "$REPO_URL" "$DEST_ABS"
+        fi
         branch="$("$GIT_BIN" -C "$DEST_ABS" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")"
         print_pass "Cloned" "$DEST_ABS (branch: $branch)"
         record_step "Clone" PASS "$branch"

@@ -20,6 +20,10 @@
 .PARAMETER Dest
     Where to clone. Default: .\<RepoName> in the current directory.
 
+.PARAMETER Branch
+    Clone a specific branch (default: repo's default branch). Useful for
+    testing forks/PRs before they merge.
+
 .PARAMETER Yes
     Auto-confirm every prompt (non-interactive).
 
@@ -45,6 +49,7 @@
 param(
     [string]$Repo = "",
     [string]$RepoUrl = "",
+    [string]$Branch = "",
     [string]$Dest = "",
     [switch]$Yes,
     [switch]$NoDevDeps,
@@ -302,6 +307,7 @@ Write-Host ("  Platform     : Windows {0}" -f $env:PROCESSOR_ARCHITECTURE)
 Write-Host ("  Model        : {0}" -f $RepoName)
 Write-Host ("  Description  : {0}" -f $RepoDesc)
 Write-Host ("  Source       : {0}" -f $RepoUrl)
+if ($Branch) { Write-Host ("  Branch       : {0}" -f $Branch) }
 Write-Host ("  Destination  : {0}" -f $DestAbs)
 Write-Host ("  Package      : {0}" -f $PkgName)
 Write-Host ("  Dev/test deps: {0}" -f $(if ($WithDevDeps) { "yes" } else { "no" }))
@@ -435,11 +441,20 @@ if ($DestHasRepo) {
         Record-Step "Clone" "SKIP" "existing clone used as-is ($branch)"
     }
 } else {
-    Write-Host ("  Will clone {0} into {1}." -f $RepoUrl, $DestAbs)
+    if ($Branch) {
+        Write-Host ("  Will clone {0} (branch: {1}) into {2}." -f $RepoUrl, $Branch, $DestAbs)
+    } else {
+        Write-Host ("  Will clone {0} into {1}." -f $RepoUrl, $DestAbs)
+    }
     Write-Host ""
     if (Prompt-YN "Clone now?" 'y') {
-        Write-Cmd "git clone $RepoUrl $DestAbs"
-        & $GitBin clone $RepoUrl $DestAbs
+        if ($Branch) {
+            Write-Cmd "git clone --branch $Branch $RepoUrl $DestAbs"
+            & $GitBin clone --branch $Branch $RepoUrl $DestAbs
+        } else {
+            Write-Cmd "git clone $RepoUrl $DestAbs"
+            & $GitBin clone $RepoUrl $DestAbs
+        }
         if ($LASTEXITCODE -ne 0) { throw "git clone failed (exit $LASTEXITCODE)" }
         $branch = "?"
         try { $branch = (& $GitBin -C $DestAbs rev-parse --abbrev-ref HEAD 2>$null).Trim() } catch {}
