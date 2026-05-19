@@ -500,10 +500,12 @@ if [ ! -x "$DEST_ABS/.venv/bin/python" ]; then
     print_fail "Venv python not found; skipping import check." "$DEST_ABS/.venv/bin/python"
     record_step "Verification" FAIL "no venv python"
 else
-    pyver="$("$DEST_ABS/.venv/bin/python" -c 'import sys; print(sys.version.split()[0])' 2>/dev/null || echo unknown)"
+    # -W ignore silences upstream deprecation warnings (e.g. from pygam) so
+    # the verification output stays clean.
+    pyver="$("$DEST_ABS/.venv/bin/python" -W ignore -c 'import sys; print(sys.version.split()[0])' 2>/dev/null || echo unknown)"
     print_pass "Python in .venv" "$pyver"
-    if "$DEST_ABS/.venv/bin/python" -c "import $PKG_NAME" >/dev/null 2>&1; then
-        ver="$("$DEST_ABS/.venv/bin/python" -c "import $PKG_NAME; print(getattr($PKG_NAME, '__version__', '?'))" 2>/dev/null)"
+    if "$DEST_ABS/.venv/bin/python" -W ignore -c "import $PKG_NAME" >/dev/null 2>&1; then
+        ver="$("$DEST_ABS/.venv/bin/python" -W ignore -c "import $PKG_NAME; print(getattr($PKG_NAME, '__version__', '?'))" 2>/dev/null)"
         print_pass "import $PKG_NAME" "$ver"
         record_step "Verification" PASS "import $PKG_NAME ($ver)"
     else

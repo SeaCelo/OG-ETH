@@ -511,13 +511,16 @@ if (-not (Test-Path $VenvPython)) {
     Record-Step "Verification" "FAIL" "no venv python"
 } else {
     $pyver = ""
-    try { $pyver = (& $VenvPython -c "import sys; print(sys.version.split()[0])" 2>$null).Trim() } catch {}
+    try { $pyver = (& $VenvPython -W ignore -c "import sys; print(sys.version.split()[0])" 2>&1 | Select-Object -Last 1).ToString().Trim() } catch {}
     Write-Pass "Python in .venv" $pyver
 
-    & $VenvPython -c "import $PkgName" 2>$null | Out-Null
+    # Run import as a discrete process; merge stderr into stdout so PS doesn't
+    # treat upstream deprecation warnings (e.g. from pygam) as halting errors.
+    # -W ignore silences Python's own warnings.
+    & $VenvPython -W ignore -c "import $PkgName" 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
         $ver = ""
-        try { $ver = (& $VenvPython -c "import $PkgName; print(getattr($PkgName, '__version__', '?'))" 2>$null).Trim() } catch {}
+        try { $ver = (& $VenvPython -W ignore -c "import $PkgName; print(getattr($PkgName, '__version__', '?'))" 2>&1 | Select-Object -Last 1).ToString().Trim() } catch {}
         Write-Pass "import $PkgName" $ver
         Record-Step "Verification" "PASS" "import $PkgName ($ver)"
     } else {
