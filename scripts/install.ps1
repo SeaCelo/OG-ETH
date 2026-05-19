@@ -562,9 +562,9 @@ if ($AllOk) {
     Write-Host "  ${BOLD}To start using ${RepoName}:${RESET}"
     Write-Host "    cd $DestAbs"
     Write-Host "    .\.venv\Scripts\Activate.ps1     # activate venv"
-    Write-Host ("    python -c `"import {0}; print({0}.__file__)`"" -f $PkgName)
+    Write-Host ("    python -W ignore -c `"import {0}; print({0}.__file__)`"" -f $PkgName)
     Write-Host "  Or run commands without activating:"
-    Write-Host ("    uv run python -c `"import {0}; print({0}.__file__)`"" -f $PkgName)
+    Write-Host ("    uv run python -W ignore -c `"import {0}; print({0}.__file__)`"" -f $PkgName)
     $exDir = Join-Path $DestAbs "examples"
     if (Test-Path $exDir) {
         Write-Host ""

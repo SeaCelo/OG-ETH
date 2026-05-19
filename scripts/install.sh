@@ -546,9 +546,9 @@ if [ "$all_ok" = 1 ]; then
     printf "  ${BOLD}To start using ${REPO_NAME}:${RESET}\n"
     printf "    cd %s\n" "$DEST_ABS"
     printf "    source .venv/bin/activate         # activate venv\n"
-    printf "    python -c \"import %s; print(%s.__file__)\"\n" "$PKG_NAME" "$PKG_NAME"
+    printf "    python -W ignore -c \"import %s; print(%s.__file__)\"\n" "$PKG_NAME" "$PKG_NAME"
     printf "  Or run commands without activating:\n"
-    printf "    uv run python -c \"import %s; print(%s.__file__)\"\n" "$PKG_NAME" "$PKG_NAME"
+    printf "    uv run python -W ignore -c \"import %s; print(%s.__file__)\"\n" "$PKG_NAME" "$PKG_NAME"
     if [ -d "$DEST_ABS/examples" ]; then
         printf "\n  Example scripts: %s/examples\n" "$DEST_ABS"
     fi

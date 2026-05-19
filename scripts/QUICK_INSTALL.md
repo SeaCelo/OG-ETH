@@ -46,14 +46,14 @@ Activate the venv and you're set:
 # macOS / Linux
 cd <destination>
 source .venv/bin/activate
-python -c "import ogeth; print(ogeth.__version__)"
+python -W ignore -c "import ogeth; print(ogeth.__version__)"
 ```
 
 ```powershell
 # Windows
 cd <destination>
 .\.venv\Scripts\Activate.ps1
-python -c "import ogeth; print(ogeth.__version__)"
+python -W ignore -c "import ogeth; print(ogeth.__version__)"
 ```
 
 ## Testing the migration branch (right now, before merge)
