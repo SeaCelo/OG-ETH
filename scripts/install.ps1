@@ -59,7 +59,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+# $PSScriptRoot is the script's directory when run from a file; it's empty when
+# run via the brew-style one-liner (& ([scriptblock]::Create((irm ...)))), in
+# which case we fall back to the current working directory so the log file
+# lands somewhere predictable instead of crashing Split-Path on the script's
+# own source text.
+$ScriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { (Get-Location).Path }
 $WithDevDeps = -not $NoDevDeps
 
 # -- Repo catalog (only uv-migrated repos) -------------------------------------
