@@ -1,0 +1,52 @@
+name: Verify installer checksums
+
+# The double-click wrappers (install.bat, install.command) download
+# scripts/SHA256SUMS at runtime and verify the SHA-256 of install.sh /
+# install.ps1 against it before executing. If SHA256SUMS drifts from the
+# installer files (e.g. someone edits install.sh but forgets to rerun
+# scripts/update-sums.sh), the wrappers break for everyone. This workflow
+# fails the PR/push so the drift never reaches main.
+
+on:
+  push:
+    paths:
+      - 'scripts/install.sh'
+      - 'scripts/install.ps1'
+      - 'scripts/install.bat'
+      - 'scripts/install.command'
+      - 'scripts/SHA256SUMS'
+      - 'scripts/update-sums.sh'
+      - '.github/workflows/verify_checksums.yml'
+  pull_request:
+    paths:
+      - 'scripts/install.sh'
+      - 'scripts/install.ps1'
+      - 'scripts/install.bat'
+      - 'scripts/install.command'
+      - 'scripts/SHA256SUMS'
+      - 'scripts/update-sums.sh'
+      - '.github/workflows/verify_checksums.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify SHA256SUMS matches installer files
+        working-directory: scripts
+        run: |
+          sha256sum -c SHA256SUMS
+      - name: Verify SHA256SUMS is up to date with update-sums.sh
+        working-directory: scripts
+        run: |
+          # Regenerate into a temp file and diff against the checked-in copy.
+          # Catches the case where someone edited an installer + manually
+          # patched one line in SHA256SUMS but didn't rerun the script.
+          sha256sum install.sh install.ps1 install.bat install.command > SHA256SUMS.new
+          if ! diff -u SHA256SUMS SHA256SUMS.new; then
+            echo ""
+            echo "ERROR: scripts/SHA256SUMS is out of sync with the installer files."
+            echo "Run: bash scripts/update-sums.sh"
+            echo "Then commit the updated SHA256SUMS together with your changes."
+            exit 1
+          fi
