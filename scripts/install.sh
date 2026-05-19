@@ -52,7 +52,9 @@ Options:
       --repo-url URL      Use a custom Git URL. Bypasses the menu.
       --branch BRANCH     Clone a specific branch (default: repo's default branch).
                           Useful for testing forks/PRs before they merge.
-      --dest DIR          Where to clone (default: ./\${REPO_NAME}).
+      --dest DIR          Parent directory where the clone is created
+                          (default: current directory). The clone always
+                          lands in <DIR>/\${REPO_NAME}.
       --no-dev-deps       Install runtime deps only (skip dev/test tooling).
       --skip-uv-install   Don't install uv; assume it's already on PATH.
       --no-log            Don't write a log file.
@@ -60,9 +62,9 @@ Options:
 Examples:
   $0                                        # fully interactive
   $0 --repo og-eth                          # menu skipped; prompt for dest
-  $0 --repo og-eth --dest ~/work/og-eth --yes
-  $0 --repo-url git@github.com:me/OG-USA.git --dest ./og-usa
-  $0 --repo-url https://github.com/me/OG-ETH.git --branch feat/uv-migration --dest /tmp/test
+  $0 --repo og-eth --dest ~/Projects --yes        # clones to ~/Projects/OG-ETH
+  $0 --repo-url git@github.com:me/OG-USA.git --dest .
+  $0 --repo-url https://github.com/me/OG-ETH.git --branch feat/uv-migration --dest /tmp
 EOF
 }
 
@@ -282,17 +284,17 @@ if [ -z "$REPO_URL" ]; then
     REPO_URL="https://github.com/${REPO_OWNER}/${REPO_NAME}.git"
 fi
 
-# ── Pick destination ──────────────────────────────────────────────────────────
+# ── Pick destination (PARENT directory; clone lands at PARENT/REPO_NAME) ──────
 if [ -z "$DEST" ]; then
-    default_dest="./${REPO_NAME}"
     if [ ! -t 0 ]; then
-        DEST="$default_dest"
+        DEST="."
     else
-        printf "\n  Where would you like to clone %s?\n" "$REPO_NAME"
-        printf "  Default: %s (relative to: %s)\n" "$default_dest" "$(pwd)"
-        printf "  Destination [%s]: " "$default_dest"
+        printf "\n  Where would you like to install %s?\n" "$REPO_NAME"
+        printf "  Enter the PARENT directory; %s will be cloned as a subfolder inside.\n" "$REPO_NAME"
+        printf "  Default: current directory (%s)\n" "$(pwd)"
+        printf "  Parent directory [.]: "
         IFS= read -r DEST || true
-        DEST="${DEST:-$default_dest}"
+        DEST="${DEST:-.}"
     fi
 fi
 
@@ -301,23 +303,21 @@ case "$DEST" in
     "~") DEST="$HOME";;
     "~/"*) DEST="$HOME/${DEST#~/}";;
 esac
-# Resolve parent + base to absolute path
-DEST_PARENT="$(dirname "$DEST")"
-DEST_BASE="$(basename "$DEST")"
-if [ ! -d "$DEST_PARENT" ]; then
-    if [ "$DEST_PARENT" = "." ]; then
-        DEST_PARENT="$(pwd)"
-    else
-        printf "${RED}ERROR:${RESET} parent directory does not exist: %s\n" "$DEST_PARENT" >&2
-        exit 1
-    fi
-fi
-DEST_ABS="$(cd "$DEST_PARENT" && pwd)/$DEST_BASE"
 
-# Refuse dangerous paths
-case "$DEST_ABS" in
-    "$HOME"|"/"|"/Users"|"/home"|"/root"|"/usr"|"/etc"|"/var"|"/bin"|"/sbin"|"/opt"|"/tmp")
-        printf "${RED}ERROR:${RESET} refusing to install into '%s' (system or profile dir).\n" "$DEST_ABS" >&2
+# DEST is the parent directory. Must exist; resolve to absolute.
+if [ ! -d "$DEST" ]; then
+    printf "${RED}ERROR:${RESET} parent directory does not exist: %s\n" "$DEST" >&2
+    printf "Create it first (mkdir -p %s) or pick a different --dest.\n" "$DEST" >&2
+    exit 1
+fi
+PARENT_ABS="$(cd "$DEST" && pwd)"
+DEST_ABS="${PARENT_ABS}/${REPO_NAME}"
+
+# Refuse if PARENT is a dangerous system dir. (User-home is fine -- clone lands
+# inside it, not overwriting it.)
+case "$PARENT_ABS" in
+    "/"|"/usr"|"/etc"|"/var"|"/bin"|"/sbin"|"/opt")
+        printf "${RED}ERROR:${RESET} refusing to install into '%s' (system dir).\n" "$PARENT_ABS" >&2
         exit 1;;
 esac
 

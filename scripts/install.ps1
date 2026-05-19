@@ -18,7 +18,8 @@
     Use a custom Git URL (e.g. your fork or SSH URL). Bypasses the menu.
 
 .PARAMETER Dest
-    Where to clone. Default: .\<RepoName> in the current directory.
+    Parent directory where the clone is created. Default: current directory.
+    The clone always lands in <Dest>\<RepoName>.
 
 .PARAMETER Branch
     Clone a specific branch (default: repo's default branch). Useful for
@@ -41,8 +42,8 @@
     Fully interactive: pick a model and a destination, then install.
 
 .EXAMPLE
-    .\scripts\install.ps1 -Repo og-eth -Dest C:\work\og-eth -Yes
-    Unattended install of OG-ETH into C:\work\og-eth.
+    .\scripts\install.ps1 -Repo og-eth -Dest C:\work -Yes
+    Unattended install of OG-ETH into C:\work\OG-ETH.
 #>
 
 [CmdletBinding()]
@@ -260,15 +261,15 @@ if (-not $RepoUrl) {
 
 # -- Pick destination ----------------------------------------------------------
 if (-not $Dest) {
-    $defaultDest = ".\$RepoName"
     if (-not (Test-Interactive)) {
-        $Dest = $defaultDest
+        $Dest = "."
     } else {
         Write-Host ""
-        Write-Host ("  Where would you like to clone {0}?" -f $RepoName)
-        Write-Host ("  Default: {0}   (relative to: {1})" -f $defaultDest, (Get-Location).Path)
-        $entered = Read-Host ("  Destination [{0}]" -f $defaultDest)
-        if ([string]::IsNullOrWhiteSpace($entered)) { $Dest = $defaultDest } else { $Dest = $entered }
+        Write-Host ("  Where would you like to install {0}?" -f $RepoName)
+        Write-Host ("  Enter the PARENT directory; {0} will be cloned as a subfolder inside." -f $RepoName)
+        Write-Host ("  Default: current directory ({0})" -f (Get-Location).Path)
+        $entered = Read-Host "  Parent directory [.]"
+        if ([string]::IsNullOrWhiteSpace($entered)) { $Dest = "." } else { $Dest = $entered }
     }
 }
 
@@ -277,24 +278,26 @@ $Dest = [Environment]::ExpandEnvironmentVariables($Dest)
 if ($Dest.StartsWith("~")) {
     $Dest = Join-Path $env:USERPROFILE $Dest.Substring(1).TrimStart('\','/')
 }
-$DestParent = Split-Path -Parent $Dest
-if (-not $DestParent) { $DestParent = (Get-Location).Path }
-if (-not (Test-Path $DestParent)) {
-    Write-Host "${RED}ERROR:${RESET} parent directory does not exist: $DestParent" -ForegroundColor Red
+
+# $Dest is the parent directory. Must exist; resolve to absolute.
+if (-not (Test-Path $Dest)) {
+    Write-Host "${RED}ERROR:${RESET} parent directory does not exist: $Dest" -ForegroundColor Red
+    Write-Host "Create it first (mkdir $Dest) or pick a different -Dest."
     Stop-TranscriptIfActive; exit 1
 }
-$DestAbs = Join-Path (Resolve-Path $DestParent).Path (Split-Path -Leaf $Dest)
+$ParentAbs = (Resolve-Path $Dest).Path
+$DestAbs = Join-Path $ParentAbs $RepoName
 
-# Refuse dangerous destinations
-$destNorm = $DestAbs.TrimEnd('\').ToLower()
+# Refuse if PARENT is a dangerous system dir. (User-home is fine -- clone lands
+# inside it, not overwriting it.)
+$parentNorm = $ParentAbs.TrimEnd('\').ToLower()
 $dangerous = @(
-    $env:USERPROFILE.ToLower(),
     $env:WINDIR.ToLower(),
     "${env:ProgramFiles}".ToLower(),
     "${env:ProgramFiles(x86)}".ToLower()
 )
-if ($dangerous -contains $destNorm -or $destNorm -match '^[a-z]:[\\/]?$') {
-    Write-Host "${RED}ERROR:${RESET} refusing to install into '$DestAbs' (system or user-profile dir)." -ForegroundColor Red
+if ($dangerous -contains $parentNorm -or $parentNorm -match '^[a-z]:[\\/]?$') {
+    Write-Host "${RED}ERROR:${RESET} refusing to install into '$ParentAbs' (system dir)." -ForegroundColor Red
     Stop-TranscriptIfActive; exit 1
 }
 

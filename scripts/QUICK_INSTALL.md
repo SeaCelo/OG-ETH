@@ -16,7 +16,8 @@ bash install.sh
 To skip the prompts:
 
 ```bash
-bash install.sh --repo og-eth --dest ~/Projects/OG-ETH --yes
+bash install.sh --repo og-eth --dest ~/Projects --yes
+# clones to ~/Projects/OG-ETH
 ```
 
 ## Windows (PowerShell)
@@ -33,7 +34,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 To skip the prompts:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -Repo og-eth -Dest C:\Users\$env:USERNAME\Projects\OG-ETH -Yes
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Repo og-eth -Dest C:\Users\$env:USERNAME\Projects -Yes
+# clones to C:\Users\<you>\Projects\OG-ETH
 ```
 
 ## After install
@@ -64,13 +66,13 @@ The URLs above point at the `feat/uv-migration` branch on `SeaCelo/OG-ETH` (sinc
 Or skip the menu entirely:
 
 ```bash
-# macOS / Linux
-bash install.sh --repo-url https://github.com/SeaCelo/OG-ETH.git --branch feat/uv-migration --dest ~/Projects/OG-ETH
+# macOS / Linux -- clones to ~/Projects/OG-ETH
+bash install.sh --repo-url https://github.com/SeaCelo/OG-ETH.git --branch feat/uv-migration --dest ~/Projects
 ```
 
 ```powershell
-# Windows
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -RepoUrl https://github.com/SeaCelo/OG-ETH.git -Branch feat/uv-migration -Dest C:\Users\$env:USERNAME\Projects\OG-ETH
+# Windows -- clones to C:\Users\<you>\Projects\OG-ETH
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -RepoUrl https://github.com/SeaCelo/OG-ETH.git -Branch feat/uv-migration -Dest C:\Users\$env:USERNAME\Projects
 ```
 
 After the migration merges to upstream, drop `--repo-url` / `--branch` (or `-RepoUrl` / `-Branch`) — `--repo og-eth` / `-Repo og-eth` will work directly.
