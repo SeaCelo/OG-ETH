@@ -55,10 +55,36 @@ rate rose — an income effect, so they also work more).
    factor −6.6%, K/Y +4.2%. Re-validation against the FY2024/25 targets and a look at
    solver seeds are required before it graduates off this branch.
 
+## A-0b — statutory-like marginal rate on filers (run 2026-07-10, 50 s, FOC ~1e-12)
+
+Same as A-0 except `mtrx_params` 0.20 → 0.35 for labor income (filers only, since the
+filer flag zeroes the MTR for everyone else). Average rate (7.68%) and revenue identity
+unchanged by construction; `mtry` left at 0.20.
+
+| | Baseline | A-0 (MTR 20%) | A-0b (MTR 35%) |
+|---|---|---|---|
+| Y | 0.5601 | 0.6010 | 0.5929 |
+| L | 0.4015 | 0.4221 | 0.4162 |
+| K | 1.6638 | 1.8608 | 1.8369 |
+| PIT revenue (% of Y) | 2.46 | 1.41 | 1.35 |
+| Total tax (% of Y) | 9.20 | 8.13 | 8.06 |
+| Formal groups' hours vs baseline | — | +3.1 / +3.3% | **−3.3 / −3.1%** |
+| Informal groups' hours vs baseline | — | +5.6% | +5.7% |
+
+Reading:
+1. **The marginal rate alone swings formal labor supply by ~6.4pp** (from +3% to −3%
+   vs baseline) with the average tax bill held fixed — this is the "high marginal rates
+   on a narrow formal base discourage work/formalization" mechanism from IMF SIP
+   2025/189 ¶14, now live in the model.
+2. **Behavioral revenue erosion appears**: PIT lands at 1.35% of Y (vs 1.41 in A-0,
+   target 1.5) because formal earnings shrink under the higher wedge. Restoring the
+   target under MTR 35% requires ETR ≈ 8.5% — the erosion itself is a finding (a
+   ~4% base loss from the marginal-rate increase).
+3. A-0b is the more faithful representation of Ethiopia's actual PIT design (top
+   statutory rate binds at modest formal incomes) and gives the reform experiments the
+   margin they need. Leading candidate for preferred variant, pending A-1.
+
 ## Next in the grid
 
-- **A-0b**: raise filers' MTRx toward the statutory top region (30–35%) — the SIP says a
-  large share of formal wages is taxed at the top rate; this is the behavioral margin
-  that matters for formalization stories.
 - **A-1**: graded noncompliance instead of binary filer flags (same revenue anchor).
-- **A5 reform**: the formalization time path, once a preferred variant is chosen.
+- Preferred-variant decision, then **A5 reform**: the formalization time path.
