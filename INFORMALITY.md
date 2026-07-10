@@ -264,8 +264,10 @@ wage-gap and sector-switching margins.
 
 ## 7. Housekeeping found along the way
 
-- `imf_cr2620.pdf` (repo root, untracked, main checkout) is a failed download — a 480-byte
-  Akamai "Access Denied" HTML page, not the IMF report. Re-download if wanted locally.
+- `imf_cr2620.pdf` (repo root, untracked, main checkout) was a failed download — a 480-byte
+  Akamai "Access Denied" page. **Fixed 2026-07-10**: replaced with the verified CR 26/20
+  (4.5 MB, IMF eLibrary), identity confirmed from the title page. Its Table 2b is the
+  revenue anchor for the experiments (§9.2).
 - Upstream OG-Core issue to file: `SS.py:915-918` capital-noncompliance tiling bug (§2.2).
 - Commit `c58c972`'s PIT rate changes need retroactive documentation (§4.1) regardless of
   which option proceeds.
@@ -278,3 +280,99 @@ wage-gap and sector-switching margins.
 - Option A experiments stay here until they earn a `feature/` branch.
 - Option B belongs to the multi-industry effort (see `MULTI_INDUSTRY_PORTING.md`) and
   should be specified there when that work starts, referencing this document.
+
+## 9. Experiment plan (A → B → C, in turn)
+
+House rules for every phase: experiments live in `experiments/` on this branch; the base
+JSON is never touched (overlays / `updated_params` only); model outputs stay out of git
+(summary tables go in markdown); every solve gets the import-path preflight; runs are
+proposed here and launched by Marcelo. Graduation rule: an experiment that survives its
+acceptance checks gets a `feature/` branch and a proper PR; everything else remains
+documented exploration.
+
+### Phase 0 — Baseline reference (prerequisite, ~one short run)
+
+1. `uv sync --extra dev` in this worktree; preflight `uv run python -c "import ogeth,
+   ogcore; print(ogeth.__file__, ogcore.__file__)"` and assert both resolve here/in this
+   venv.
+2. Solve the FY2024/25 baseline SS **on this branch, unmodified**, and record the reference
+   dashboard in `experiments/baseline.md`: r, K/Y, aggregate L, factor, and — the part the
+   existing dashboard lacks — **revenue by instrument as % of GDP** (income tax, payroll,
+   tau_c, CIT) to compare against CR 26/20 Table 2b.
+3. Acceptance: the baseline solves and the recorded numbers reproduce the calibration
+   targets. This is the yardstick every experiment is measured against.
+
+### Phase A — Formal/informal split via filer/noncompliance dials
+
+**A1. Data anchors** (no model work):
+- Revenue targets from CR 26/20 Table 2b (FY2024/25 proj., % of GDP): tax revenue 7.8,
+  direct taxes 3.5, domestic indirect 2.0, import duties 2.3. Split direct into PIT vs CIT
+  from Table 2a (birr) or MoF data — open item.
+- Statutory PIT schedule (0–35%), **as amended by the July 2025 Income Tax Proclamation
+  amendments effective FY25/26** (CR 26/20 ¶ on the income-tax SB — brackets were adjusted;
+  use the new schedule for the formal-sector anchor).
+- Formal-worker share: ILO informal employment 85.2% (2021); pension-coverage share already
+  embedded in `tau_payroll`. Map to `lambdas` cutoffs.
+
+**A2. Design grid** (run in this order; each is one overlay dict):
+- **A-0 "binary"**: `income_tax_filer = [0,0,0,0,0,1,1]` (90% informal); filers' ETR/MTR
+  re-anchored to the formal effective schedule such that aggregate PIT revenue ≈ the A1
+  anchor. Simplest, sharpest contrast with the blended baseline.
+- **A-1 "graded"**: everyone files, but `labor_income_tax_noncompliance_rate` declines in
+  j (e.g., 1.0 for the bottom five groups, partial for group 6, ~0 for the top). Same
+  revenue anchor. Tests whether the softer parameterization matters for aggregates.
+- **A-2 "capital side"**: add `capital_income_tax_noncompliance_rate` > 0 (interest/capital
+  income taxation in Ethiopia is thin) — after the upstream `SS.py` fix lands, since this
+  is the configuration that trips the `mtry_ss` diagnostic bug (§2.2). Until then, labor ≠
+  capital rates are usable for solving but `mtry_ss` output must not be interpreted.
+- Parked for a later pass: time-varying `tau_payroll` coverage path;
+  `replacement_rate_adjust[t,j] ≈ 0` for informal groups (pension coverage consistency).
+
+**A3. Implementation**: `experiments/optionA/` — a small builder that computes the filers'
+rate from the revenue identity (given lambdas, e, and baseline incomes) plus a runner
+script applying the overlay via `updated_params`. Non-destructive throughout.
+
+**A4. Validation per variant** (the §6 dashboard, made concrete):
+- Revenue decomposition vs Table 2b, instrument by instrument — not just total revenue.
+- Wedge distribution: average and marginal rates by j (bottom groups ~0, top groups near
+  the formal effective schedule).
+- GE drift vs Phase 0: factor, K/Y, L, r — expect movement (the baseline equilibrium
+  changes); document what moved, why, and retune `initial_guess_*` if the solver needs it.
+- Decision: pick A-0 or A-1 as the preferred informality baseline, with written reasons.
+
+**A5. The reform that motivates all of this**: a stylized DRM/formalization path —
+`income_tax_filer[t,j]` and noncompliance improving over 10–15 years consistent with the
+Medium-Term Revenue Strategy — run as a TPI reform against the preferred A variant.
+Acceptance: sensible revenue path, converging TPI (adjust `nu` if it oscillates), and a
+story we can defend about the GE effects of formalization.
+
+### Phase B — Informal industry (blocked on the multi-industry port)
+
+Spec now, execute when `feature/multi-industry-calibration` exists:
+- Verify first (open item from §5): does the IFPRI 2022 SAM technical documentation
+  really have no formal/informal split? If none, the split is a documented judgment
+  overlay (agriculture + informal-heavy services from ESS/ILO shares; MIMIC ~37–39% of
+  GDP as a cross-check).
+- Structure: informal industry `cit_rate = 0`; informal consumption good `tau_c = 0` with
+  the formal good near statutory 15%, jointly reproducing the ~5.3% realized effective
+  rate. Start from the OG-IDN demo shape, ETH-calibrated.
+- Test: the demand-reallocation margin — a VAT reform through blended-`tau_c` single
+  industry vs the B split; the difference in revenue and consumption responses IS the
+  finding.
+- B composes with A (firm-side and household-side levers are separable); the combined
+  configuration is the candidate "informality-aware" calibration.
+
+### Phase C — Dual labor market (scoping only, trigger-gated)
+
+Trigger: only if A+B leave reform questions we care about unanswerable (wage gaps,
+endogenous sector switching). Deliverable is a 1–2 page proposal for the OG-Core
+maintainers (new state variable, second market clearing, calibration data needs), not code
+in this repo. No precedent exists anywhere in the family (§3) — this is a research project
+to coordinate upstream, not a calibration task.
+
+### Comparison harness (runs across phases)
+
+One fixed reform (the A5 formalization path, or a simple VAT change) pushed through:
+baseline (blended) → A (household split) → A+B (both margins). Same-signs/similar-
+magnitudes discipline as the single↔multi compatibility work; divergences between
+configurations are the result, not a bug — but each one needs a written mechanism.
