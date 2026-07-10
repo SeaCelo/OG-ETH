@@ -1,0 +1,49 @@
+{
+  "income_tax_filer": [
+    [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  ],
+  "labor_income_tax_noncompliance_rate": [
+    [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      0.0
+    ]
+  ],
+  "capital_income_tax_noncompliance_rate": [
+    [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      0.0
+    ]
+  ],
+  "etr_params": [
+    [
+      [
+        0.1332
+      ]
+    ]
+  ],
+  "mtrx_params": [
+    [
+      [
+        0.35
+      ]
+    ]
+  ]
+}

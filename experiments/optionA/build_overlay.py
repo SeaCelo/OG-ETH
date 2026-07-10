@@ -83,6 +83,15 @@ def main():
     print("A-1 solved ETR:", round(float(etr_a1), 4))
     print("wrote", out_1)
 
+    # A-2 (preferred candidate): A-1's graded compliance + A-0b's
+    # statutory-like 35% marginal rate on labor income.
+    overlay_2 = dict(overlay_1)
+    overlay_2["mtrx_params"] = [[[0.35]]]
+    out_2 = os.path.join(CUR_DIR, "optionA_overlay_2.json")
+    with open(out_2, "w") as f:
+        json.dump(overlay_2, f, indent=2)
+    print("wrote", out_2)
+
 
 if __name__ == "__main__":
     main()
