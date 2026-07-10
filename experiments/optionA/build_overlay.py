@@ -59,6 +59,30 @@ def main():
         json.dump(overlay_b, f, indent=2)
     print("wrote", out_b)
 
+    # A-1: graded compliance instead of a binary filer line. Everyone
+    # nominally files; noncompliance falls with lifetime income (1.0 =
+    # nothing owed is paid). Group 6's 0.5 is a judgment call (partly
+    # visible high earners); labor and capital rates are set EQUAL, which
+    # also sidesteps the upstream SS.py mtry_ss diagnostic bug. ETR is
+    # solved from the same revenue identity on the compliance-weighted base.
+    NC = [1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0]
+    eff_base = (by_j * (1 - np.array(NC))).sum()
+    etr_a1 = PIT_TARGET_SHARE_OF_Y * ss["Y"] / eff_base
+    overlay_1 = {
+        "income_tax_filer": [[1.0] * 7],
+        "labor_income_tax_noncompliance_rate": [NC],
+        "capital_income_tax_noncompliance_rate": [NC],
+        "etr_params": [[[round(float(etr_a1), 4)]]],
+        # mtrx kept at baseline 0.20 so A-1 vs A-0 isolates the compliance
+        # parameterization; a graded+35%-MTR combination comes after.
+    }
+    out_1 = os.path.join(CUR_DIR, "optionA_overlay_1.json")
+    with open(out_1, "w") as f:
+        json.dump(overlay_1, f, indent=2)
+    print("A-1 compliance-weighted income base share:", round(eff_base / by_j.sum(), 4))
+    print("A-1 solved ETR:", round(float(etr_a1), 4))
+    print("wrote", out_1)
+
 
 if __name__ == "__main__":
     main()
