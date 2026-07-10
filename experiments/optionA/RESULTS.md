@@ -143,3 +143,34 @@ target from the same behavioral erosion A-0b showed; ETR ≈ 14.1% would close i
 recorded as a refinement option, not applied.
 
 **Decision: A-2 is the Option A platform.** The A5 formalization reform runs on it.
+
+## A5 — formalization reform: RUN INVALID, upstream bug found (2026-07-10)
+
+The reform (noncompliance ramping [1,1,1,1,1,.5,0] → [1,1,1,1,.9,.25,0] over 5 years,
+rates unchanged) solved and converged, and `model_params.pkl` confirms the ramp was
+applied. But reform revenue tracked the baseline exactly (iit_payroll/Y flat at ~3.22%
+vs an expected rise toward ~3.9%) while labor supply fell — behavior saw the reform,
+revenue didn't.
+
+**Root cause (verified in code, present upstream):** `ogcore/TPI.py:1046-1076` computes
+the path-wide household tax matrices via `tax.net_taxes(..., t=0, j=None, "TPI", ...)`
+— a single call with `t=0`. Inside `tax.income_tax_liab` (tax.py:360-369, j=None/TPI
+branch) that selects `noncompliance_rate[0, :]` and `income_tax_filer[0, :]`: **year-0
+compliance and filer status applied to the entire transition path.** The ETR function
+parameters in the same call (`etr_params_4D`, TPI.py:1032-1041) are correctly
+per-year, and the household FOC solves correctly slice the full path
+(household.py:713-716). Consequences:
+
+- Any reform that changes `labor/capital_income_tax_noncompliance_rate` or
+  `income_tax_filer` **over time** — the exact intended use — yields internally
+  inconsistent TPI output: households respond, but measured revenue (and therefore the
+  government budget, debt path, and everything downstream) uses frozen year-0 values.
+- The A5 macro paths (Y −0.8%, revenue −1%) are artifacts of this leak (households
+  perceive higher taxes; the government books no extra revenue), not results.
+- Confirmed present in the OG-Core checkout at v0.16.3+3 (`ae870bbc9`), i.e. live
+  upstream. This is upstream bug #2 from this exploration (bug #1: SS.py:915-918
+  capital-noncompliance diagnostic tiling).
+
+**Status: A5 is blocked** until the TPI slicing is fixed (upstream fix, or a clearly
+marked local patch on this branch to preview results). Steady-state comparisons
+(A-0/A-0b/A-1/A-2) are unaffected — SS revenue uses the correct rates.
