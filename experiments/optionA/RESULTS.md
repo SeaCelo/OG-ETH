@@ -203,3 +203,39 @@ deliberately did not model here).
 Caveats: SS-to-SS comparison — no transition dynamics, and with `debt_ratio_ss` fixed
 the extra revenue accrues to spending rather than debt reduction; the transition run
 (pending the upstream TPI fix) is where debt-path and timing effects will show.
+
+## A-2-final — all revenue anchors closed (2026-07-10, 114 s)
+
+Two refinements on A-2: ETR 13.32 → 14.07% (feedback-corrected: target/realized) and
+`adjustment_factor_for_cit_receipts` 0.2 → 0.385 (solved so CIT hits its ~2.0% of GDP
+anchor; the 0.2 was undocumented and over-corrected for informality — see issue #71).
+
+| Instrument (% of Y) | A-2-final | Data |
+|---|---|---|
+| PIT | 1.49 | 1.5 (SIP chart-read) |
+| CIT | 2.02 | ~2.0 (SIP chart-read) |
+| **Direct total** | **3.51** | **3.5 (CR 26/20 Table 2b)** |
+| Consumption | 3.84 | 4.3 incl. import duties |
+| Pension contributions (payroll) | 1.80 | off-table (not GFS tax revenue) |
+| Tax revenue ex-payroll | 7.35 | 7.8 |
+
+Direct taxes now match the IMF fiscal table to 0.01pp with the burden distributed as
+in reality. The residual total-revenue gap (−0.45pp) is entirely on the consumption
+side and belongs to the base calibration's `tau_c`, not this branch. Macro: Y=0.5993,
+L=0.4238, K=1.8308, factor=324,095 — the drift vs the blended baseline is the A-2
+recalibration effect already documented.
+
+## Sensitivity — the group-6 "50% visible" judgment (2026-07-10)
+
+Re-solved with group-6 noncompliance at 0.4 and 0.6 (ETR re-anchored each time:
+12.27% / 16.49%).
+
+| | nc6=0.4 | nc6=0.5 (platform) | nc6=0.6 |
+|---|---|---|---|
+| Y | 0.5976 | 0.5993 | 0.6011 |
+| PIT %Y | 1.48 | 1.49 | 1.50 |
+| CIT %Y | 2.02 | 2.02 | 2.02 |
+
+**The grading choice is macro-irrelevant** (Y moves ±0.3%; revenue pinned by
+construction). It only changes the statutory-like rate needed (12.3–16.5%) and the
+split of the burden within the top ~11% of households. The judgment call is safe.
