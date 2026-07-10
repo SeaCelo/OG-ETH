@@ -119,3 +119,27 @@ evasion; group 7: pure income effect).
 - **Proposed preferred variant "A-2" = graded compliance + `mtrx_params` 0.35**, with
   the ETR re-solved on the compliance-weighted base. To be built and validated next,
   then used as the platform for the A5 formalization reform.
+
+## A-2 — the preferred variant, validated (run 2026-07-10, 49 s, FOC ~1e-12)
+
+Graded compliance [1,1,1,1,1,0.5,0] + statutory 35% MTR on labor income, ETR 13.32%.
+
+| | Baseline | A-2 |
+|---|---|---|
+| Y | 0.5601 | 0.6021 (+7.5%) |
+| L | 0.4015 | 0.4222 (+5.2%) |
+| K | 1.6638 | 1.8705 (+12.4%) |
+| PIT revenue (% of Y) | 2.46 | 1.42 (target 1.5) |
+| Total tax (% of Y) | 9.20 | 8.12 (data 7.8) |
+| Avg income-tax rate by j | 3% flat | 0×5 / 6.7% / 13.3% |
+| Hours vs baseline by j | — | +5.6–5.8% informal / +3.4% semi / +0.3% top |
+
+The hours pattern is the economics working: the informal majority gains from losing a
+wedge it never really faced; the semi-compliant group faces 17.5% at the margin (35% ×
+its 50% visibility) — slightly *below* the old 20%, plus an income effect, so it works
+more; the fully compliant top 1% faces the full 35% marginal wedge and comes out
+essentially flat (substitution and income effects offsetting). PIT lands 5% below
+target from the same behavioral erosion A-0b showed; ETR ≈ 14.1% would close it —
+recorded as a refinement option, not applied.
+
+**Decision: A-2 is the Option A platform.** The A5 formalization reform runs on it.
