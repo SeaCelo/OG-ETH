@@ -84,7 +84,38 @@ Reading:
    statutory rate binds at modest formal incomes) and gives the reform experiments the
    margin they need. Leading candidate for preferred variant, pending A-1.
 
-## Next in the grid
+## A-1 — graded noncompliance (run 2026-07-10, 47 s, FOC ~1e-12)
 
-- **A-1**: graded noncompliance instead of binary filer flags (same revenue anchor).
-- Preferred-variant decision, then **A5 reform**: the formalization time path.
+Everyone files; noncompliance by group = [1,1,1,1,1,0.5,0] on both labor and capital
+income (equal rates, so the upstream SS.py diagnostic bug is moot). ETR solved on the
+compliance-weighted base: 13.32%. MTR left at baseline 0.20 to isolate the compliance
+parameterization.
+
+| | Baseline | A-0 | A-0b | A-1 |
+|---|---|---|---|---|
+| Y | 0.5601 | 0.6010 | 0.5929 | **0.6064** |
+| L | 0.4015 | 0.4221 | 0.4162 | 0.4253 |
+| K | 1.6638 | 1.8608 | 1.8369 | 1.8832 |
+| PIT revenue (% of Y) | 2.46 | 1.41 | 1.35 | **1.46** |
+| Total tax (% of Y) | 9.20 | 8.13 | 8.06 | 8.16 |
+
+A-1's effective average rates by group come out 0 / 0 / 0 / 0 / 0 / 6.7% / 13.3% — a
+smooth progressive schedule emerges from one statutory rate times compliance, and the
+solved 13.3% is much closer to plausible effective rates on real formal earners than
+A-0's 7.7%. Revenue lands nearest the target (1.46 vs 1.5). All groups' hours rise vs
+baseline (informal: wedge removed; group 6: *halved* marginal wedge via evasion — hiding
+half your income halves your effective marginal rate, which is the actual economics of
+evasion; group 7: pure income effect).
+
+## Preferred-variant decision
+
+- **A-1's compliance structure wins for the reform program**: the A5 formalization
+  reform IS a compliance path — noncompliance rates falling over 10–15 years — which is
+  continuous and natural in A-1, but lumpy in A-0 (whole groups flip filer status at
+  once). It also fits the revenue target best and yields realistic effective rates.
+- **A-0b's marginal-rate realism should be added to it**: A-1 at MTR 0.20 understates
+  the wedge on fully compliant formal earners (statutory top rate is 35% and binds at
+  modest formal incomes).
+- **Proposed preferred variant "A-2" = graded compliance + `mtrx_params` 0.35**, with
+  the ETR re-solved on the compliance-weighted base. To be built and validated next,
+  then used as the platform for the A5 formalization reform.
