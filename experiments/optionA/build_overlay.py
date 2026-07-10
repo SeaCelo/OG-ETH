@@ -92,6 +92,22 @@ def main():
         json.dump(overlay_2, f, indent=2)
     print("wrote", out_2)
 
+    # A-2-final: close the remaining gaps observed in the solved A-2 SS.
+    # (i) ETR scaled by target/realized PIT (1.50/1.42) to offset the
+    # behavioral feedback; (ii) CIT collections factor scaled so business
+    # tax hits its ~2.0% of GDP anchor (realized 1.04% at factor 0.2).
+    overlay_2f = dict(overlay_2)
+    overlay_2f["etr_params"] = [[[round(float(etr_a1) * 1.5 / 1.42, 4)]]]
+    overlay_2f["adjustment_factor_for_cit_receipts"] = [
+        round(0.2 * 2.0 / 1.04, 3)
+    ]
+    out_2f = os.path.join(CUR_DIR, "optionA_overlay_2_final.json")
+    with open(out_2f, "w") as f:
+        json.dump(overlay_2f, f, indent=2)
+    print("A-2-final ETR:", overlay_2f["etr_params"][0][0][0],
+          " CIT factor:", overlay_2f["adjustment_factor_for_cit_receipts"][0])
+    print("wrote", out_2f)
+
 
 if __name__ == "__main__":
     main()
