@@ -174,3 +174,32 @@ per-year, and the household FOC solves correctly slice the full path
 **Status: A5 is blocked** until the TPI slicing is fixed (upstream fix, or a clearly
 marked local patch on this branch to preview results). Steady-state comparisons
 (A-0/A-0b/A-1/A-2) are unaffected — SS revenue uses the correct rates.
+
+## A5-endpoint — the long-run effect of formalization (SS-only, bug-free; 2026-07-10)
+
+While the TPI fix is in review, the *destination* of the A5 reform is computable
+cleanly: solve the steady state with compliance permanently at its formalized level
+(noncompliance [1,1,1,1,.9,.25,0]) and compare with the A-2 platform. 139 s solve.
+
+| | A-2 (pre-reform) | Formalized | change |
+|---|---|---|---|
+| PIT revenue (% of Y) | 1.42 | **2.06** | +0.64pp |
+| Total tax (% of Y) | 8.12 | 8.75 | +0.63pp |
+| Y | 0.6021 | 0.5980 | −0.7% |
+| L | 0.4222 | 0.4205 | −0.4% |
+| K | 1.8705 | 1.8470 | −1.3% |
+| Avg rate by group | 0×5 / 6.7 / 13.3% | 0×4 / 1.3 / 10.0 / 13.3% | — |
+
+**Headline: formalization delivers ~99% of its static revenue gain in the long run.**
+Static arithmetic predicted PIT of 2.08% of Y; the model delivers 2.06 — behavioral
+erosion of roughly 1%. The reason: the newly visible income belongs mostly to groups
+whose *marginal* wedge changes little (group 5 goes from 0 to 3.5%; group 6 from 17.5
+to 26.25% and cuts hours only −1.5%; the fully compliant top is untouched). The real
+cost is correspondingly small: −0.7% of long-run output. In program terms, this
+compliance package alone yields +0.63pp of GDP — about half the IMF program's
+projected direct-tax improvement through 2029/30 (which also counts CIT gains we
+deliberately did not model here).
+
+Caveats: SS-to-SS comparison — no transition dynamics, and with `debt_ratio_ss` fixed
+the extra revenue accrues to spending rather than debt reduction; the transition run
+(pending the upstream TPI fix) is where debt-path and timing effects will show.
