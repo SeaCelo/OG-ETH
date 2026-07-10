@@ -239,3 +239,21 @@ Re-solved with group-6 noncompliance at 0.4 and 0.6 (ETR re-anchored each time:
 **The grading choice is macro-irrelevant** (Y moves ±0.3%; revenue pinned by
 construction). It only changes the statutory-like rate needed (12.3–16.5%) and the
 split of the burden within the top ~11% of households. The judgment call is safe.
+
+## Anchor revision — chart-reads replaced by text-stated figures (2026-07-10)
+
+IMF SIP 2025/108 ¶9 states the numbers directly (avg FY2021/22–2023/24, WEO + MoF):
+**PIT 1.4% of GDP, CIT 1.7% of GDP** (our chart-reads were 1.5/2.0). The ~0.4pp
+remainder of Table 2b's 3.5% "direct taxes" is payroll/property taxes not separately
+modeled. UNU-WIDER GRD's Ethiopia PIT/CIT split ends in 2007 (1.05/1.39) — historical
+corroboration only; GRD has no Ethiopia social-contributions data at all. OECD Revenue
+Statistics in Africa does not cover Ethiopia.
+
+A-2-final re-anchored (ETR 13.13%, CIT factor 0.327) and re-solved:
+PIT **1.39** (target 1.40), CIT **1.71** (target 1.70), PIT+CIT **3.10** vs SIP 3.1.
+Formalized endpoint re-solved on the new platform: PIT 2.02 (+0.64pp), static
+prediction 2.04 → **the ~99%-of-static-gain headline is robust to the re-anchoring**;
+long-run output cost still −0.7%. Earlier variant tables (A-0…A-2, sensitivity) keep
+their as-run numbers; they used the 1.5 chart-read and their qualitative findings are
+anchor-independent. GDP-rebasing caveat: all ratios use the pre-rebasing denominator;
+the ~2026 rebase (+20–40% nominal GDP) will shrink every anchor mechanically.

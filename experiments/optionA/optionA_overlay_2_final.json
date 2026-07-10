@@ -35,7 +35,7 @@
   "etr_params": [
     [
       [
-        0.1407
+        0.1313
       ]
     ]
   ],
@@ -47,6 +47,6 @@
     ]
   ],
   "adjustment_factor_for_cit_receipts": [
-    0.385
+    0.327
   ]
 }

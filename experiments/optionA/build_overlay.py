@@ -92,14 +92,20 @@ def main():
         json.dump(overlay_2, f, indent=2)
     print("wrote", out_2)
 
-    # A-2-final: close the remaining gaps observed in the solved A-2 SS.
-    # (i) ETR scaled by target/realized PIT (1.50/1.42) to offset the
-    # behavioral feedback; (ii) CIT collections factor scaled so business
-    # tax hits its ~2.0% of GDP anchor (realized 1.04% at factor 0.2).
+    # A-2-final: anchored to the TEXT-STATED revenue figures in IMF SIP
+    # 2025/108 ¶9 (avg FY2021/22-2023/24, WEO + MoF): PIT 1.4% of GDP,
+    # CIT 1.7% of GDP. (Earlier variants above used chart-read 1.5/2.0 —
+    # kept as recorded history.) (i) ETR = identity on the compliance-
+    # weighted base at the 1.4 target, times the measured behavioral
+    # feedback (1.5/1.42 from the A-2 solve); (ii) CIT collections factor
+    # scaled so business tax hits 1.7% of GDP (realized 1.04% at 0.2).
+    PIT_TARGET_FINAL = 0.014
+    CIT_TARGET_FINAL = 1.7
     overlay_2f = dict(overlay_2)
-    overlay_2f["etr_params"] = [[[round(float(etr_a1) * 1.5 / 1.42, 4)]]]
+    etr_final = PIT_TARGET_FINAL * ss["Y"] / eff_base * (1.5 / 1.42)
+    overlay_2f["etr_params"] = [[[round(float(etr_final), 4)]]]
     overlay_2f["adjustment_factor_for_cit_receipts"] = [
-        round(0.2 * 2.0 / 1.04, 3)
+        round(0.2 * CIT_TARGET_FINAL / 1.04, 3)
     ]
     out_2f = os.path.join(CUR_DIR, "optionA_overlay_2_final.json")
     with open(out_2f, "w") as f:
