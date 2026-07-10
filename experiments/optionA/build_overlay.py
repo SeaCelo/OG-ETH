@@ -49,6 +49,16 @@ def main():
     print("solved filer ETR:", round(float(etr_filers), 4))
     print("wrote", out)
 
+    # A-0b: same filers, same average rate, but a statutory-like marginal
+    # rate on labor income (35%: IMF SIP 2025/189 notes the top PIT rate
+    # applies at relatively modest formal incomes). mtry stays at 0.20.
+    overlay_b = dict(overlay)
+    overlay_b["mtrx_params"] = [[[0.35]]]
+    out_b = os.path.join(CUR_DIR, "optionA_overlay_b.json")
+    with open(out_b, "w") as f:
+        json.dump(overlay_b, f, indent=2)
+    print("wrote", out_b)
+
 
 if __name__ == "__main__":
     main()

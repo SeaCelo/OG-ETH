@@ -8,6 +8,7 @@ Output goes to experiments/optionA/OUTPUT_A0 (untracked).
 import multiprocessing
 from distributed import Client
 import os
+import sys
 import json
 import time
 from importlib.resources import files
@@ -23,11 +24,15 @@ CUR_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 def main():
+    # usage: run_optionA_ss.py [overlay.json] [OUTPUT_DIR_NAME]
+    overlay_file = sys.argv[1] if len(sys.argv) > 1 else "optionA_overlay.json"
+    out_name = sys.argv[2] if len(sys.argv) > 2 else "OUTPUT_A0"
+
     num_workers = min(multiprocessing.cpu_count(), 7)
     client = Client(n_workers=num_workers, threads_per_worker=1)
     print("Number of workers = ", num_workers)
 
-    out_dir = os.path.join(CUR_DIR, "OUTPUT_A0")
+    out_dir = os.path.join(CUR_DIR, out_name)
 
     p = Specifications(
         baseline=True,
@@ -46,11 +51,11 @@ def main():
         c = Calibration(p, update_from_api=False)
         p.update_specifications(c.get_dict())
 
-    # Apply the Option A-0 overlay on top of the untouched baseline
-    with open(os.path.join(CUR_DIR, "optionA_overlay.json")) as f:
+    # Apply the requested overlay on top of the untouched baseline
+    with open(os.path.join(CUR_DIR, overlay_file)) as f:
         overlay = json.load(f)
     p.update_specifications(overlay)
-    print("A-0 overlay applied:", overlay)
+    print(f"overlay {overlay_file} applied:", overlay)
 
     start_time = time.time()
     runner(p, time_path=False, client=client)
