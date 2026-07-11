@@ -4,6 +4,15 @@
 (FY2024/25 baseline, commit `15f424f`). Code citations are to ogcore 0.16.3 (the pinned
 version) and to this repo at that commit.*
 
+**Status (2026-07-10): Option A COMPLETE — steady states and transition.** Platform:
+graded compliance + statutory 35% MTR, all direct-tax anchors hit
+(`experiments/optionA/RESULTS.md`); method note drafted (`experiments/optionA/METHOD.md`);
+formalization reform validated in levels and dynamics (+0.64pp of GDP revenue, ~99% of
+static gain, transition run under the OG-Core TPI fix branch pending its merge). Option B
+specced and blocked on the multi-industry port (`experiments/optionB/SPEC.md`). Option C
+remains a scoping item. Upstream: OG-Core PR #1171 (SS diagnostic), TPI-slicing fix PR
+in preparation, OG-ETH issue #71 (documentation cleanup).
+
 ## 0. The question and the short answer
 
 Informality is real economic activity that lacks legal status. Roughly 85% of Ethiopian
