@@ -70,7 +70,7 @@ def make_spec(baseline, out_dir, base_dir, num_workers):
     if is_connected():
         c = Calibration(p, update_from_api=False)
         p.update_specifications(c.get_dict())
-    with open(os.path.join(CUR_DIR, "optionA_overlay_2.json")) as f:
+    with open(os.path.join(CUR_DIR, "optionA_overlay_2_final.json")) as f:
         p.update_specifications(json.load(f))
     return p
 
