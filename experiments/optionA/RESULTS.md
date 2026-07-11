@@ -257,3 +257,33 @@ long-run output cost still −0.7%. Earlier variant tables (A-0…A-2, sensitivi
 their as-run numbers; they used the 1.5 chart-read and their qualitative findings are
 anchor-independent. GDP-rebasing caveat: all ratios use the pre-rebasing denominator;
 the ~2026 rebase (+20–40% nominal GDP) will shrink every anchor mechanically.
+
+## A5 — formalization transition, VALID under the patched ogcore (2026-07-10)
+
+Rerun on the A-2-final platform with ogcore layered from the local fix branch
+`fix-tpi-noncompliance-path` (commit `2e0bdde11`, → upstream PR; fix asserted present
+in the imported code before launch). Exploration-mode run: no version reconciliation
+against the 0.16.3 lock, per working agreement. Both TPI legs converged (baseline
+243 s, reform 186 s).
+
+Revenue now responds to compliance (% of GDP):
+
+| Year | 0 | 1 | 2 | 3 | 4 | 5 (ramp end) | 12 |
+|---|---|---|---|---|---|---|---|
+| Income+payroll, baseline | 3.19 | 3.20 | 3.20 | 3.20 | 3.20 | 3.21 | 3.23 |
+| Income+payroll, reform | 3.20 | 3.33 | 3.46 | 3.59 | 3.71 | **3.84** | 3.87 |
+| Total tax, reform | 8.64 | 9.04 | 8.98 | 9.07 | 9.19 | **9.32** | 9.35 |
+
+Findings:
+1. **Revenue arrives in step with the compliance ramp** — +0.13pp of GDP per year for
+   five years, ~+0.64pp at ramp end, exactly the long-run (SS) endpoint. No revenue
+   J-curve: collections lead, behavioral erosion never dents the path visibly.
+2. **The output cost is small and front-loaded**: Y dips ~0.6% at ramp end and is
+   already recovering by year 12 (−0.44%), converging toward the SS −0.7%... path and
+   endpoint tell one consistent story.
+3. Labor and capital dip together (~−0.6%) and recover — the transition is smooth,
+   no overshoot, no oscillation (default TPI damping was sufficient).
+4. Policy reading: a stylized NMTRS compliance package yields ~+0.65pp of GDP in
+   permanent revenue with a transition cost of under two-thirds of a percent of
+   output at its worst — and the model can now price base-broadening separately from
+   rate increases, which was the point of the whole exercise.
