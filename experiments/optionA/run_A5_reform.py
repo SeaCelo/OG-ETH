@@ -46,10 +46,7 @@ def compliance_path():
     for t in range(RAMP_YEARS + 1):
         frac = t / RAMP_YEARS
         rows.append(
-            [
-                round(s + frac * (e - s), 4)
-                for s, e in zip(NC_START, NC_END)
-            ]
+            [round(s + frac * (e - s), 4) for s, e in zip(NC_START, NC_END)]
         )
     return rows
 
@@ -110,7 +107,9 @@ def main():
     for k in ["Y", "total_tax_revenue", "iit_payroll_tax_revenue", "L", "K"]:
         b = np.asarray(bt[k])[:12]
         r = np.asarray(rt[k])[:12]
-        print(f"{k} % change (first 12 years):", np.round(100 * (r / b - 1), 2))
+        print(
+            f"{k} % change (first 12 years):", np.round(100 * (r / b - 1), 2)
+        )
 
 
 if __name__ == "__main__":

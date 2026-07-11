@@ -45,7 +45,10 @@ def main():
     out = os.path.join(CUR_DIR, "optionA_overlay.json")
     with open(out, "w") as f:
         json.dump(overlay, f, indent=2)
-    print("filer income share of household income:", round(filer_income / (by_j.sum()), 4))
+    print(
+        "filer income share of household income:",
+        round(filer_income / (by_j.sum()), 4),
+    )
     print("solved filer ETR:", round(float(etr_filers), 4))
     print("wrote", out)
 
@@ -79,7 +82,10 @@ def main():
     out_1 = os.path.join(CUR_DIR, "optionA_overlay_1.json")
     with open(out_1, "w") as f:
         json.dump(overlay_1, f, indent=2)
-    print("A-1 compliance-weighted income base share:", round(eff_base / by_j.sum(), 4))
+    print(
+        "A-1 compliance-weighted income base share:",
+        round(eff_base / by_j.sum(), 4),
+    )
     print("A-1 solved ETR:", round(float(etr_a1), 4))
     print("wrote", out_1)
 
@@ -110,8 +116,12 @@ def main():
     out_2f = os.path.join(CUR_DIR, "optionA_overlay_2_final.json")
     with open(out_2f, "w") as f:
         json.dump(overlay_2f, f, indent=2)
-    print("A-2-final ETR:", overlay_2f["etr_params"][0][0][0],
-          " CIT factor:", overlay_2f["adjustment_factor_for_cit_receipts"][0])
+    print(
+        "A-2-final ETR:",
+        overlay_2f["etr_params"][0][0][0],
+        " CIT factor:",
+        overlay_2f["adjustment_factor_for_cit_receipts"][0],
+    )
     print("wrote", out_2f)
 
 
