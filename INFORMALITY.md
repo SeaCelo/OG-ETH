@@ -13,6 +13,13 @@ specced and blocked on the multi-industry port (`experiments/optionB/SPEC.md`). 
 remains a scoping item. Upstream: OG-Core PR #1171 (SS diagnostic), TPI-slicing fix PR
 in preparation, OG-ETH issue #71 (documentation cleanup).
 
+**Reframing (2026-07-10): this work now targets an academic paper** on bringing
+informality into large-scale OLG fiscal models and estimating its costs — see
+`paper/OUTLINE.md`. It is NOT (for now) a method proposal to OG-Core; upstream
+contributions are limited to the bug fixes. References to "graduation to a feature/ PR"
+elsewhere in this document should be read through that lens: the graduation target is
+the paper's replication package, not an OG-ETH feature PR.
+
 ## 0. The question and the short answer
 
 Informality is real economic activity that lacks legal status. Roughly 85% of Ethiopian
