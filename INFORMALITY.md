@@ -13,12 +13,14 @@ specced and blocked on the multi-industry port (`experiments/optionB/SPEC.md`). 
 remains a scoping item. Upstream: OG-Core PR #1171 (SS diagnostic), TPI-slicing fix PR
 in preparation, OG-ETH issue #71 (documentation cleanup).
 
-**Reframing (2026-07-10): this work now targets an academic paper** on bringing
-informality into large-scale OLG fiscal models and estimating its costs — see
-`paper/OUTLINE.md`. It is NOT (for now) a method proposal to OG-Core; upstream
-contributions are limited to the bug fixes. References to "graduation to a feature/ PR"
-elsewhere in this document should be read through that lens: the graduation target is
-the paper's replication package, not an OG-ETH feature PR.
+**Reframing (2026-07-10): this work now targets a development-economics paper** on the
+role of informality in an economy and on assessing fiscal/formalization policy in its
+presence — see `paper/OUTLINE.md`. Large-scale OLG general equilibrium is the analytical
+tool, not the subject; the economics of informality-and-development and the
+distributional incidence of policy are the point. It is NOT (for now) a method proposal
+to OG-Core; upstream contributions are limited to the bug fixes. References to "graduation
+to a feature/ PR" elsewhere in this document should be read through that lens: the
+graduation target is the paper's replication package, not an OG-ETH feature PR.
 
 ## 0. The question and the short answer
 
